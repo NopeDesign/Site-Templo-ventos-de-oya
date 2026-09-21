@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Templo de Umbanda Ventos de Oya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cor-oya-coral: #ff6b6b;
+            --cor-oya-vermelho: #e03131;
+            --cor-verde-borda: #3b5c49;
+            --cor-azul-texto: #2b7cb3;
+        }
+        body { background-color: #fafafa; }
+        .text-oya { color: var(--cor-oya-vermelho); }
+        .bg-oya { background-color: var(--cor-oya-coral); }
+        .border-oya { border-color: var(--cor-oya-coral); }
+
+        .btn-custom { background-color: white; border: 2px solid var(--cor-verde-borda); color: var(--cor-azul-texto); border-radius: 9999px; padding: 0.5rem 1.5rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-custom:hover { background-color: #f8fafc; transform: translateY(-1px); }
+
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid var(--cor-oya-vermelho); width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .input-grande { width: 100%; padding: 12px 16px; font-size: 1.1rem; border: 2px solid #e5e7eb; border-radius: 8px; transition: border-color 0.2s; }
+        .input-grande:focus { border-color: var(--cor-oya-coral); outline: none; box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1); }
+        .label-grande { font-size: 1.1rem; font-weight: 600; color: #374151; display: block; margin-bottom: 6px; }
+        .modal-bg { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body class="text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm border-b-4 border-oya relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-24">
+                <div class="flex items-center gap-4">
+                    <img src="image_4647e2.png" alt="Logo Ventos de Oya" class="w-16 h-16 object-contain">
+                    <div><h1 class="text-2xl font-black text-gray-900 tracking-tight">Ventos de Oya</h1><p class="text-sm text-gray-500 font-medium tracking-wide uppercase">Templo de Umbanda</p></div>
+                </div>
+                <div>
+                    <button onclick="mostrarEcra('login-view')" class="btn-custom hidden sm:flex items-center" id="btn-login-header"><i class="fa-solid fa-lock mr-2 text-sm"></i> Administração</button>
+                    <button onclick="mostrarEcra('login-view')" class="text-gray-400 hover:text-oya sm:hidden text-2xl transition" id="btn-login-mobile"><i class="fa-solid fa-lock"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="public-view" class="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <div id="container-avisos" class="space-y-4 mb-10"></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="border-b border-gray-100 px-8 py-5 bg-gray-50/80"><h2 class="text-xl font-bold text-gray-800 flex items-center"><i class="fa-regular fa-calendar-days text-oya mr-3 text-2xl"></i> Próximas Giras</h2></div>
+            <div class="p-8" id="container-giras"><div class="text-center py-10 text-gray-400"><div class="loader"></div> A carregar as giras...</div></div>
+        </div>
+    </main>
+
+    <main id="login-view" class="hidden flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 w-full">
+        <div class="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border-t-4 border-oya">
+            <div class="text-center mb-8"><img src="image_4647e2.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 object-contain"><h2 class="text-2xl font-black text-gray-900">Acesso Restrito</h2></div>
+            <form id="login-form" class="space-y-6" onsubmit="realizarLogin(event)">
+                <div id="login-error" class="hidden bg-red-50 text-red-600 text-sm p-4 rounded-lg border border-red-100 font-medium"></div>
+                <div><label class="block text-sm font-bold text-gray-700">E-mail</label><input type="email" id="email" required class="input-grande"></div>
+                <div><label class="block text-sm font-bold text-gray-700">Palavra-passe</label><input type="password" id="password" required class="input-grande"></div>
+                <button type="submit" id="btn-submit-login" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl text-lg hover:bg-gray-800 transition shadow-md">Entrar no Painel</button>
+            </form>
+            <div class="mt-8 text-center border-t pt-6"><button onclick="mostrarEcra('public-view')" class="text-gray-500 hover:text-oya font-semibold transition"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao site</button></div>
+        </div>
+    </main>
+
+    <main id="admin-dashboard-view" class="hidden flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full relative">
+        <div class="flex justify-between items-center mb-10 border-b pb-6">
+            <div><h1 class="text-3xl font-black text-gray-900">Painel de Controlo</h1><p class="text-gray-500 font-medium mt-1">Gerir a corrente e o calendário</p></div>
+            <button onclick="realizarLogout()" class="text-red-600 hover:text-red-800 font-bold px-5 py-2.5 bg-red-50 hover:bg-red-100 rounded-xl transition"><i class="fa-solid fa-right-from-bracket mr-2"></i> Sair</button>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-10">
+            <!-- MENU LATERIAL -->
+            <div class="w-full lg:w-1/3 space-y-4">
+                <button onclick="abrirAba('form-gira')" class="w-full bg-blue-600 text-white p-5 rounded-2xl text-xl font-bold hover:bg-blue-700 shadow-md flex items-center justify-start gap-4 transition">
+                    <div class="bg-white/20 p-3 rounded-xl"><i class="fa-regular fa-calendar-plus fa-fw text-2xl"></i></div> Agendar Gira
+                </button>
+                <button onclick="abrirAba('form-aviso')" class="w-full bg-yellow-500 text-white p-5 rounded-2xl text-xl font-bold hover:bg-yellow-600 shadow-md flex items-center justify-start gap-4 transition">
+                    <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-bullhorn fa-fw text-2xl"></i></div> Criar Aviso
+                </button>
+                <button onclick="abrirAba('form-mensalidade')" class="w-full bg-green-600 text-white p-5 rounded-2xl text-xl font-bold hover:bg-green-700 shadow-md flex items-center justify-start gap-4 transition mt-4">
+                    <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-sack-dollar fa-fw text-2xl"></i></div> Mensalidades
+                </button>
+                <button onclick="abrirAba('lista-geral')" class="w-full bg-white text-gray-800 p-5 rounded-2xl text-xl font-bold hover:bg-gray-50 shadow-sm flex items-center justify-start gap-4 mt-8 border border-gray-200 transition">
+                    <div class="bg-gray-100 p-3 rounded-xl text-gray-500"><i class="fa-solid fa-list fa-fw text-2xl"></i></div> Ver Cadastrados
+                </button>
+            </div>
+
+            <!-- ÁREA DE FORMULÁRIOS -->
+            <div class="w-full lg:w-2/3 bg-white p-8 lg:p-10 rounded-3xl shadow-sm border border-gray-100 min-h-[500px]">
+                
+                <div id="aba-bem-vindo" class="text-center py-16">
+                    <img src="image_4647e2.png" alt="Logo" class="w-32 h-32 mx-auto mb-6 opacity-20 grayscale">
+                    <h2 class="text-2xl font-bold text-gray-700">Selecione uma opção ao lado</h2>
+                </div>
+
+                <div id="form-mensalidade" class="hidden">
+                    <h2 class="text-3xl font-black text-gray-800 mb-2 flex items-center text-green-700">💰 Mensalidades e Extras</h2>
+                    <p class="text-gray-500 mb-8 border-b pb-4">Clique no nome do filho para gerenciar mensalidades e compras (camisas, velas).</p>
+
+                    <form onsubmit="adicionarFilho(event)" class="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                        <div class="md:col-span-5">
+                            <label class="label-grande">Novo Filho de Santo:</label>
+                            <input type="text" id="novo-filho-nome" placeholder="Nome completo" required class="input-grande bg-white mt-0">
+                        </div>
+                        <div class="md:col-span-4">
+                            <label class="label-grande">Data de Entrada:</label>
+                            <input type="date" id="novo-filho-data" required class="input-grande bg-white mt-0">
+                        </div>
+                        <div class="md:col-span-3">
+                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-2 rounded-lg transition h-14">Cadastrar</button>
+                        </div>
+                    </form>
+
+                    <div class="mb-4 flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-gray-800">Lista Geral (Clique para gerir):</h3>
+                    </div>
+
+                    <!-- Lista de filhos que terá a lógica detalhada -->
+                    <div id="lista-filhos-limpa" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="text-center py-10 text-gray-400 col-span-2"><div class="loader"></div> Carregando corrente...</div>
+                    </div>
+                </div>
+
+                <div id="form-gira" class="hidden">
+                    <h2 class="text-3xl font-black text-gray-800 mb-8 flex items-center">📅 Agendar Gira</h2>
+                    <form onsubmit="salvarGira(event)" class="space-y-6">
+                        <div><label class="label-grande">Data da Gira:</label><input type="date" id="gira-data" required class="input-grande"></div>
+                        <div>
+                            <label class="label-grande">Linha de Trabalho:</label>
+                            <select id="gira-template" class="input-grande bg-white cursor-pointer" onchange="atualizarResumoGira()" required>
+                                <option value="" disabled selected>Escolha a Entidade...</option>
+                                <option value="Pretos Velhos">👵🏿 Pretos Velhos</option>
+                                <option value="Caboclos">🏹 Caboclos</option>
+                                <option value="Baianos">🥥 Baianos</option>
+                                <option value="Exu e Pombagira">🎩 Exu e Pombagira</option>
+                                <option value="Marinheiros">⚓ Marinheiros</option>
+                                <option value="Erês">🍬 Erês (Cosme e Damião)</option>
+                                <option value="Desenvolvimento">🕯️ Gira de Desenvolvimento</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><label class="label-grande">Abertura:</label><input type="time" id="gira-abertura" value="19:00" required class="input-grande"></div>
+                            <div><label class="label-grande">Fechamento:</label><input type="time" id="gira-fecho" value="19:45" required class="input-grande"></div>
+                        </div>
+                        <button type="submit" id="btn-salvar-gira" class="w-full bg-gray-900 text-white font-bold py-5 rounded-xl text-xl hover:bg-gray-800 mt-6 transition shadow-lg">Publicar Gira no Site</button>
+                    </form>
+                </div>
+
+                <div id="form-aviso" class="hidden">
+                    <h2 class="text-3xl font-black text-gray-800 mb-8 flex items-center">📢 Novo Recado</h2>
+                    <form onsubmit="salvarAviso(event)" class="space-y-6">
+                        <div><label class="label-grande">Data de Validade:</label><input type="date" id="aviso-validade" required class="input-grande"></div>
+                        <div>
+                            <label class="label-grande">Tipo de recado:</label>
+                            <select id="aviso-tipo" class="input-grande bg-white cursor-pointer" onchange="mudarPlaceholderAviso()">
+                                <option value="normal">📌 Aviso Normal</option>
+                                <option value="urgente">⚠️ Aviso Urgente</option>
+                                <option value="mensalidade">💰 Lembrete de Mensalidade</option>
+                                <option value="reuniao">👥 Convocação de Reunião</option>
+                            </select>
+                        </div>
+                        <div><label class="label-grande">Título do Recado:</label><input type="text" id="aviso-titulo" required class="input-grande"></div>
+                        <div><label class="label-grande">Mensagem:</label><textarea id="aviso-mensagem" rows="5" required class="input-grande"></textarea></div>
+                        <button type="submit" id="btn-salvar-aviso" class="w-full bg-yellow-500 text-white font-bold py-5 rounded-xl text-xl hover:bg-yellow-600 mt-6 transition shadow-lg">Publicar Recado</button>
+                    </form>
+                </div>
+
+                <div id="lista-geral" class="hidden">
+                    <h2 class="text-3xl font-black text-gray-800 mb-8">Gestão de Dados</h2>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Giras Agendadas:</h3><div id="admin-lista-giras" class="space-y-2 mb-10"></div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Avisos e Recados:</h3><div id="admin-lista-avisos" class="space-y-2 mb-10"></div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2 text-red-600">Corrente (Remover Filho):</h3><div id="admin-lista-filhos" class="space-y-2"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FICHA DO FILHO COM EXTRAS -->
+    <div id="modal-ficha" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <div class="bg-gray-900 text-white p-6 flex justify-between items-center">
+                <div><h2 class="text-3xl font-black" id="ficha-nome">Nome do Filho</h2><p class="text-gray-400 text-sm mt-1" id="ficha-data-entrada">No terreiro desde: --</p></div>
+                <button onclick="fecharFicha()" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <div class="p-6 bg-gray-50 border-b border-gray-200">
+                <div class="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total em Dívida</p>
+                        <p class="text-4xl font-black text-red-600" id="ficha-divida-valor">R$ 0,00</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Atrasos</p>
+                        <p class="text-xl font-bold text-gray-800"><span id="ficha-divida-meses">0</span> Mensalidades + <span id="ficha-divida-extras">0</span> Extras</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-grow bg-white grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center text-blue-700"><i class="fa-solid fa-cart-shopping mr-2"></i> Lançar Débito Extra</h3>
+                    <form onsubmit="adicionarDebitoExtra(event)" class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6 space-y-3">
+                        <div><label class="text-sm font-bold text-gray-700 block mb-1">O que o filho pegou?</label><input type="text" id="extra-desc" placeholder="Ex: Camisa, Vela, Rifa..." required class="w-full p-2 border rounded-lg"></div>
+                        <div class="flex gap-2 items-end">
+                            <div class="w-2/3"><label class="text-sm font-bold text-gray-700 block mb-1">Valor (R$)</label><input type="number" id="extra-valor" step="0.01" min="0.01" placeholder="Ex: 45.00" required class="w-full p-2 border rounded-lg"></div>
+                            <button type="submit" class="w-1/3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition h-[42px]">Lançar</button>
+                        </div>
+                    </form>
+                    <h4 class="font-bold text-gray-700 mb-3">Itens Pendentes:</h4>
+                    <div id="ficha-lista-extras" class="space-y-2"></div>
+                </div>
+
+                <div class="border-t md:border-t-0 md:border-l md:pl-8 border-gray-200 pt-6 md:pt-0">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 text-green-700"><i class="fa-solid fa-calendar-check mr-2"></i> Histórico Mensal</h3>
+                    <div id="ficha-lista-meses" class="space-y-3 max-h-[350px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-auto py-8 text-center text-sm font-medium text-gray-400">
+        &copy; <span id="ano-atual"></span> Templo de Umbanda Ventos de Oya.
+    </footer>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        const supabaseUrl = 'https://rymlelvjpkdyhxaugywq.supabase.co'
+        const supabaseKey = 'sb_publishable_2bhMn9r5dYyDgLFtC7XMhQ_ij3i_IVl'
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        const mesesNomesCompletos = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+        let filhosDataLocal = [];
+        let pagamentosDataLocal = [];
+        let debitosExtrasLocal = [];
+        let filhoSendoEditado = null; 
+
+        const dataHoje = new Date().toISOString().split('T')[0];
+        document.getElementById('novo-filho-data').value = dataHoje;
+
+        window.adicionarFilho = async function(event) {
+            event.preventDefault();
+            const nomeInput = document.getElementById('novo-filho-nome').value;
+            const dataInput = document.getElementById('novo-filho-data').value;
+            
+            const { error } = await supabase.from('filhos').insert([{ nome: nomeInput, data_entrada: dataInput, valor_mensalidade: 100.00 }]);
+            if(!error) { document.getElementById('novo-filho-nome').value = ''; carregarMensalidades(); } 
+            else alert("Erro ao cadastrar.");
+        }
+
+        window.carregarMensalidades = async function() {
+            const container = document.getElementById('lista-filhos-limpa');
+            container.innerHTML = '<div class="text-center py-10 text-gray-400 col-span-2"><div class="loader"></div> Carregando dados...</div>';
+            
+            const [resFilhos, resPagos, resExtras] = await Promise.all([
+                supabase.from('filhos').select('*').order('nome', { ascending: true }),
+                supabase.from('mensalidades').select('*'),
+                supabase.from('debitos_extras').select('*')
+            ]);
+            
+            if (resFilhos.error || !resFilhos.data || resFilhos.data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center col-span-2">Nenhum filho de santo cadastrado.</p>';
+                return;
+            }
+
+            filhosDataLocal = resFilhos.data;
+            pagamentosDataLocal = resPagos.data || [];
+            debitosExtrasLocal = resExtras.data || [];
+
+            const dataAtual = new Date();
+            const anoAtual = dataAtual.getFullYear();
+            const mesAtual = dataAtual.getMonth() + 1;
+            const diaAtual = dataAtual.getDate();
+
+            let html = '';
+            filhosDataLocal.forEach(filho => {
+                const dataInicio = new Date(filho.data_entrada || filho.data_cadastro);
+                const anoInicio = dataInicio.getFullYear();
+                const mesInicio = dataInicio.getMonth() + 1;
+
+                const pagamentosDoFilho = pagamentosDataLocal.filter(p => p.filho_id === filho.id).map(p => p.mes_ano);
+                const extrasDoFilho = debitosExtrasLocal.filter(e => e.filho_id === filho.id);
+                
+                let cursorData = new Date(anoInicio, mesInicio - 1, 1);
+                let hojeData = new Date(anoAtual, mesAtual - 1, 1);
+                
+                let mesesAtrasados = 0;
+                let mesesNomesAtrasados = []; // Guarda o nome dos meses atrasados
+                
+                let totalValorExtras = 0;
+                extrasDoFilho.forEach(e => totalValorExtras += e.valor);
+
+                while(cursorData <= hojeData) {
+                    let anoC = cursorData.getFullYear();
+                    let mesC = cursorData.getMonth() + 1;
+                    let mesStr = `${anoC}-${mesC.toString().padStart(2, '0')}`;
+                    
+                    let cobrar = true;
+                    if(anoC === anoAtual && mesC === mesAtual && diaAtual <= 10) cobrar = false;
+                    
+                    if(cobrar && !pagamentosDoFilho.includes(mesStr)) {
+                        mesesAtrasados++;
+                        mesesNomesAtrasados.push(mesesNomesCompletos[mesC - 1]);
+                    }
+                    
+                    cursorData.setMonth(cursorData.getMonth() + 1);
+                }
+
+                // CÁLCULO INTELIGENTE DO STATUS
+                let totalDivida = (mesesAtrasados * 100.00) + totalValorExtras;
+                let corCard = totalDivida > 0 ? "border-red-200 bg-red-50/20" : "border-green-200 bg-white";
+                let statusBadge = '';
+
+                if (totalDivida === 0) {
+                    statusBadge = `<span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full"><i class="fa-solid fa-check"></i> Em dia</span>`;
+                } else {
+                    let descTexto = '';
+                    if (mesesAtrasados > 0) {
+                        // Se for só 1 mês atrasado
+                        if (mesesAtrasados === 1) {
+                            descTexto = `Mensalidade de ${mesesNomesAtrasados[0]} atrasada`;
+                        } else {
+                            // Se for mais que 1, lista os meses limitando a visualização se for muito longo
+                            let mesesStr = mesesNomesAtrasados.slice(0, 2).join(', ');
+                            if(mesesNomesAtrasados.length > 2) mesesStr += '...';
+                            descTexto = `Mensalidades atrasadas (${mesesStr})`;
+                        }
+                        if (totalValorExtras > 0) descTexto += ' + extras';
+                    } else if (totalValorExtras > 0) {
+                        descTexto = `Débitos extras`;
+                    }
+
+                    statusBadge = `
+                        <div class="flex flex-col gap-1.5 items-start mt-1">
+                            <span class="bg-red-100 text-red-800 text-sm font-black px-3 py-1 rounded-md">Dívida: R$ ${totalDivida.toFixed(2).replace('.', ',')}</span>
+                            <span class="text-xs text-red-600 font-bold ml-1 flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ${descTexto}</span>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div onclick="abrirFicha('${filho.id}')" class="cursor-pointer flex justify-between items-center p-5 rounded-2xl border ${corCard} hover:shadow-md transition">
+                        <div>
+                            <p class="font-black text-gray-900 text-lg">${filho.nome}</p>
+                            <div class="mt-1">${statusBadge}</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300"></i>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // ... Restante das funções do Modal iguais (abrirFicha, pagamentos, etc)
+        window.abrirFicha = function(filho_id) {
+            filhoSendoEditado = filho_id;
+            const filho = filhosDataLocal.find(f => f.id === filho_id);
+            const pagamentosDoFilho = pagamentosDataLocal.filter(p => p.filho_id === filho.id).map(p => p.mes_ano);
+            const extrasDoFilho = debitosExtrasLocal.filter(e => e.filho_id === filho.id);
+            
+            document.getElementById('ficha-nome').innerText = filho.nome;
+            const dataInicio = new Date(filho.data_entrada || filho.data_cadastro);
+            document.getElementById('ficha-data-entrada').innerText = `No terreiro desde: ${dataInicio.toLocaleDateString('pt-BR')}`;
+
+            const dataAtual = new Date();
+            const anoAtual = dataAtual.getFullYear();
+            const mesAtual = dataAtual.getMonth() + 1;
+            const diaAtual = dataAtual.getDate();
+
+            let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
+            let hojeData = new Date(anoAtual, mesAtual - 1, 1);
+            
+            let htmlMeses = '';
+            let mesesAtrasados = 0;
+            const valorMensalidade = 100.00;
+
+            let mesesList = [];
+            while(cursorData <= hojeData) {
+                mesesList.unshift({ ano: cursorData.getFullYear(), mes: cursorData.getMonth() + 1 });
+                cursorData.setMonth(cursorData.getMonth() + 1);
+            }
+
+            mesesList.forEach(m => {
+                let mesStr = `${m.ano}-${m.mes.toString().padStart(2, '0')}`;
+                let isPago = pagamentosDoFilho.includes(mesStr);
+                
+                let isVencido = true;
+                if(m.ano === anoAtual && m.mes === mesAtual && diaAtual <= 10) isVencido = false;
+                if(isVencido && !isPago) mesesAtrasados++;
+
+                let bgLinha = isPago ? "bg-green-50 border-green-200" : (isVencido ? "bg-red-50 border-red-200" : "bg-yellow-50 border-yellow-200");
+                let statusTexto = isPago ? `<span class="text-green-700 font-bold"><i class="fa-solid fa-check"></i> Pago</span>` : (isVencido ? `<span class="text-red-700 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Atrasado</span>` : `<span class="text-yellow-700 font-bold">Vence dia 10</span>`);
+                let btnHtml = isPago 
+                    ? `<button onclick="alterarPagamentoNaFicha('${mesStr}', false)" class="text-xs font-bold text-gray-400 hover:text-red-500 underline">Desfazer</button>`
+                    : `<button onclick="alterarPagamentoNaFicha('${mesStr}', true)" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-3 rounded-lg text-xs shadow">Pagar</button>`;
+
+                htmlMeses += `
+                    <div class="flex justify-between items-center p-3 border ${bgLinha} rounded-xl">
+                        <div><p class="font-bold text-gray-900 text-sm">${mesesNomesCompletos[m.mes-1]} ${m.ano}</p><p class="text-xs mt-0.5">${statusTexto}</p></div>
+                        <div>${btnHtml}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('ficha-lista-meses').innerHTML = htmlMeses;
+
+            let htmlExtras = '';
+            let valorTotalExtras = 0;
+            if(extrasDoFilho.length === 0) {
+                htmlExtras = '<p class="text-gray-400 text-sm italic">Nenhum débito extra pendente.</p>';
+            } else {
+                extrasDoFilho.forEach(extra => {
+                    valorTotalExtras += extra.valor;
+                    htmlExtras += `
+                        <div class="flex justify-between items-center p-3 border border-red-200 bg-red-50 rounded-xl mb-2">
+                            <div>
+                                <p class="font-bold text-gray-900 text-sm">${extra.descricao}</p>
+                                <p class="text-red-700 font-bold text-sm">R$ ${extra.valor.toFixed(2).replace('.', ',')}</p>
+                            </div>
+                            <button onclick="pagarDebitoExtra('${extra.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg text-xs shadow"><i class="fa-solid fa-check mr-1"></i> Quitar</button>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('ficha-lista-extras').innerHTML = htmlExtras;
+
+            document.getElementById('ficha-divida-meses').innerText = mesesAtrasados;
+            document.getElementById('ficha-divida-extras').innerText = extrasDoFilho.length;
+            
+            const valorTotalDivida = (mesesAtrasados * valorMensalidade) + valorTotalExtras;
+            document.getElementById('ficha-divida-valor').innerText = `R$ ${valorTotalDivida.toFixed(2).replace('.', ',')}`;
+            
+            document.getElementById('modal-ficha').classList.remove('hidden');
+        }
+
+        window.alterarPagamentoNaFicha = async function(mes_ano, marcarComoPago) {
+            if(marcarComoPago) await supabase.from('mensalidades').insert([{ filho_id: filhoSendoEditado, mes_ano: mes_ano }]);
+            else await supabase.from('mensalidades').delete().match({ filho_id: filhoSendoEditado, mes_ano: mes_ano });
+            await recarregarEEAtualizarFicha();
+        }
+
+        window.adicionarDebitoExtra = async function(event) {
+            event.preventDefault();
+            const desc = document.getElementById('extra-desc').value;
+            const valor = parseFloat(document.getElementById('extra-valor').value);
+            
+            await supabase.from('debitos_extras').insert([{ filho_id: filhoSendoEditado, descricao: desc, valor: valor }]);
+            document.getElementById('extra-desc').value = ''; document.getElementById('extra-valor').value = '';
+            await recarregarEEAtualizarFicha();
+        }
+
+        window.pagarDebitoExtra = async function(id_debito) {
+            if(confirm("Tem certeza que este valor extra foi pago?")) {
+                await supabase.from('debitos_extras').delete().eq('id', id_debito);
+                await recarregarEEAtualizarFicha();
+            }
+        }
+
+        async function recarregarEEAtualizarFicha() {
+            await carregarMensalidades(); 
+            abrirFicha(filhoSendoEditado);
+        }
+
+        window.fecharFicha = function() {
+            document.getElementById('modal-ficha').classList.add('hidden');
+            filhoSendoEditado = null;
+        }
+
+        // Funções de Inicialização e Outros Menus
+        async function carregarTudo() { carregarAvisos(); carregarGiras(); }
+
+        async function carregarAvisos() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const { data } = await supabase.from('avisos').select('*').gte('data_expiracao', hoje).order('data_publicacao', { ascending: false });
+            const container = document.getElementById('container-avisos');
+            if (!data || data.length === 0) { container.innerHTML = ''; return; }
+            let html = '';
+            data.forEach(aviso => {
+                let corBorda = 'border-blue-500', corFundo = 'bg-blue-50', corIcon = 'text-blue-600', corTexto = 'text-blue-900', icone = 'fa-info-circle';
+                if(aviso.tipo === 'urgente') { corBorda='border-oya'; corFundo='bg-red-50'; corIcon='text-oya'; corTexto='text-red-900'; icone='fa-circle-exclamation'; }
+                if(aviso.tipo === 'mensalidade') { corBorda='border-green-500'; corFundo='bg-green-50'; corIcon='text-green-600'; corTexto='text-green-900'; icone='fa-sack-dollar'; }
+                html += `<div class="${corFundo} border-l-4 ${corBorda} p-5 rounded-r-xl shadow-sm"><div class="flex items-start"><div class="flex-shrink-0"><i class="fa-solid ${icone} ${corIcon} text-xl mt-1"></i></div><div class="ml-4"><h3 class="text-lg font-black ${corTexto}">${aviso.titulo}</h3><p class="mt-1 font-medium text-gray-700">${aviso.mensagem}</p></div></div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        async function carregarGiras() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const { data } = await supabase.from('giras').select('*').gte('data', hoje).order('data', { ascending: true });
+            const container = document.getElementById('container-giras');
+            if (!data || data.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center py-10 font-medium">Nenhuma gira agendada no momento.</p>'; return; }
+            let html = '<div class="space-y-6">';
+            data.forEach((gira, index) => {
+                const [ano, mesStr, dia] = gira.data.split('-');
+                const mesNome = mesesNomesCompletos[parseInt(mesStr)-1].substring(0,3);
+                const isProxima = index === 0;
+                const bordaCard = isProxima ? "border-oya border-2 shadow-md bg-white" : "border-gray-200 border bg-white opacity-90";
+                html += `<div class="flex flex-col sm:flex-row p-6 rounded-2xl ${bordaCard}"><div class="flex flex-col items-center justify-center bg-gray-100 rounded-xl p-4 min-w-[100px] mb-4 sm:mb-0 sm:mr-6"><span class="text-sm font-black uppercase">${mesNome}</span><span class="text-4xl font-black text-gray-900">${dia}</span></div><div class="flex-grow flex flex-col justify-center"><h3 class="font-black text-2xl">${gira.linha_trabalho}</h3><p class="text-sm text-gray-600 mt-2">${gira.horario_abertura} - ${gira.horario_fechamento} | Roupa: ${gira.roupa}</p></div></div>`;
+            });
+            container.innerHTML = html + '</div>';
+        }
+
+        window.mostrarEcra = function(ecraId) {
+            document.getElementById('public-view').classList.add('hidden'); document.getElementById('login-view').classList.add('hidden'); document.getElementById('admin-dashboard-view').classList.add('hidden');
+            document.getElementById(ecraId).classList.remove('hidden');
+            if(ecraId === 'public-view') { document.getElementById('btn-login-header').classList.remove('hidden'); document.getElementById('btn-login-header').classList.add('sm:flex'); carregarTudo(); } 
+            else { document.getElementById('btn-login-header').classList.add('hidden'); document.getElementById('btn-login-header').classList.remove('sm:flex'); }
+        }
+
+        window.abrirAba = function(abaId) {
+            document.getElementById('aba-bem-vindo').classList.add('hidden'); document.getElementById('form-gira').classList.add('hidden'); document.getElementById('form-aviso').classList.add('hidden'); document.getElementById('form-mensalidade').classList.add('hidden'); document.getElementById('lista-geral').classList.add('hidden');
+            document.getElementById(abaId).classList.remove('hidden');
+            if(abaId === 'form-mensalidade') carregarMensalidades();
+        }
+
+        window.realizarLogin = async function(event) {
+            event.preventDefault();
+            const { error } = await supabase.auth.signInWithPassword({ email: document.getElementById('email').value, password: document.getElementById('password').value });
+            if (error) document.getElementById('login-error').classList.remove('hidden'); else { document.getElementById('login-form').reset(); mostrarEcra('admin-dashboard-view'); }
+        }
+
+        window.realizarLogout = async function() { await supabase.auth.signOut(); mostrarEcra('public-view'); }
+        async function verificarSessao() { const { data: { session } } = await supabase.auth.getSession(); if (session) mostrarEcra('admin-dashboard-view'); else carregarTudo(); }
+        document.getElementById('ano-atual').innerText = new Date().getFullYear();
+        verificarSessao();
+    </script>
+</body>
+</html>
