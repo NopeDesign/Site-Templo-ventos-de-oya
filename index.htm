@@ -181,18 +181,19 @@
                         <div><label class="label-grande">Data da Gira:</label><input type="date" id="gira-data" required class="input-grande"></div>
                         <div>
                             <label class="label-grande">Linha de Trabalho:</label>
-                            <select id="gira-template" class="input-grande cursor-pointer" onchange="atualizarResumoGira()" required>
-                                <option value="" disabled selected>Selecione a Entidade...</option>
-                                <option value="Pretos Velhos">Pretos Velhos</option>
-                                <option value="Caboclos">Caboclos</option>
-                                <option value="Baianos">Baianos</option>
-                                <option value="Malandros">Malandros (Zé Pelintra)</option>
-                                <option value="Exu e Pombagira">Exu e Pombagira</option>
-                                <option value="Exu Mirim">Exu Mirim</option>
-                                <option value="Marinheiros">Marinheiros</option>
-                                <option value="Erês">Erês (Cosme e Damião)</option>
-                                <option value="Desenvolvimento">Gira de Desenvolvimento</option>
-                            </select>
+                            <input list="lista-entidades" id="gira-template" class="input-grande cursor-pointer" placeholder="Selecione ou digite o evento/entidade..." oninput="atualizarResumoGira()" required>
+                            <datalist id="lista-entidades">
+                                <option value="Pretos Velhos">
+                                <option value="Caboclos">
+                                <option value="Boiadeiros">
+                                <option value="Baianos">
+                                <option value="Malandros">
+                                <option value="Exu e Pombagira">
+                                <option value="Exu Mirim">
+                                <option value="Marinheiros">
+                                <option value="Erês">
+                                <option value="Desenvolvimento">
+                            </datalist>
                         </div>
                         <div class="grid grid-cols-2 gap-5">
                             <div><label class="label-grande">Horário de Início:</label><input type="time" id="gira-abertura" value="19:00" required class="input-grande"></div>
