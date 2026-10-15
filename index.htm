@@ -92,12 +92,23 @@
     <main id="user-dashboard-view" class="hidden flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         <div class="mb-8 border-b border-slate-200 pb-6">
             <h1 class="text-3xl font-black text-slate-900 tracking-tight">Olá, <span id="user-nome-display" class="text-oya"></span>!</h1>
-            <p class="text-slate-500 font-medium mt-1 text-sm">Acompanhe os seus avisos, calendário e ficha financeira.</p>
+            <p class="text-slate-500 font-medium mt-1 text-sm">Acompanhe a sua escala de limpeza, avisos, calendário e ficha financeira.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- COLUNA ESQUERDA: Ficha Financeira -->
+            <!-- COLUNA ESQUERDA: Escala de Faxina & Ficha Financeira -->
             <div class="lg:col-span-1 space-y-6">
+                
+                <!-- CARD: ESCALA DE FAXINA DO FILHO -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-teal-500"></div>
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-broom mr-2 text-teal-600"></i>Sua Escala de Faxina</h3>
+                    <div id="user-escala-faxina">
+                        <div class="text-center py-4 text-slate-400"><div class="loader"></div></div>
+                    </div>
+                </div>
+
+                <!-- CARD: RESUMO FINANCEIRO -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-receipt mr-2"></i>Resumo Financeiro</h3>
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-4 text-center">
@@ -153,6 +164,9 @@
                 </button>
                 <button onclick="abrirAba('form-aviso')" class="w-full bg-white text-slate-700 p-4 rounded-xl font-semibold hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200 border border-slate-200 shadow-sm flex items-center justify-start gap-4 transition group">
                     <div class="bg-slate-100 text-slate-500 p-2.5 rounded-lg group-hover:bg-yellow-100 group-hover:text-yellow-600 transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-bullhorn text-lg"></i></div> Criar Aviso
+                </button>
+                <button onclick="abrirAba('form-faxina')" class="w-full bg-white text-slate-700 p-4 rounded-xl font-semibold hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 border border-slate-200 shadow-sm flex items-center justify-start gap-4 transition group">
+                    <div class="bg-slate-100 text-slate-500 p-2.5 rounded-lg group-hover:bg-teal-100 group-hover:text-teal-600 transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-broom text-lg"></i></div> Escala de Faxina
                 </button>
                 <button onclick="abrirAba('form-mensalidade')" class="w-full bg-white text-slate-700 p-4 rounded-xl font-semibold hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200 shadow-sm flex items-center justify-start gap-4 transition group mt-6">
                     <div class="bg-slate-100 text-slate-500 p-2.5 rounded-lg group-hover:bg-emerald-100 group-hover:text-emerald-600 transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-users text-lg"></i></div> Filhos & Mensalidades
@@ -232,6 +246,60 @@
                         <div><label class="label-grande">Mensagem:</label><textarea id="aviso-mensagem" rows="5" required class="input-grande resize-none"></textarea></div>
                         <button type="submit" id="btn-salvar-aviso" class="w-full bg-slate-900 text-white font-semibold py-4 rounded-xl hover:bg-slate-800 mt-4 transition shadow-sm">Distribuir Comunicado</button>
                     </form>
+                </div>
+
+                <!-- ESCALA DE FAXINA (NOVO MÓDULO ADMIN) -->
+                <div id="form-faxina" class="hidden">
+                    <div class="mb-8 border-b border-slate-100 pb-5">
+                        <h2 class="text-2xl font-black text-slate-800 flex items-center"><i class="fa-solid fa-broom text-teal-600 mr-3"></i> Gestão de Grupos de Faxina</h2>
+                        <p class="text-slate-500 text-sm mt-1">Crie grupos de limpeza, defina a data da próxima escala e mova os filhos entre os grupos.</p>
+                    </div>
+
+                    <!-- CRIAR NOVO GRUPO -->
+                    <form onsubmit="criarGrupoFaxina(event)" class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-8">
+                        <h3 class="text-sm font-bold text-slate-700 mb-4"><i class="fa-solid fa-layer-group mr-2 text-teal-600"></i>Criar Novo Grupo de Faxina</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <div class="md:col-span-4">
+                                <label class="label-grande">Nome do Grupo:</label>
+                                <input type="text" id="faxina-nome" placeholder="Ex: Grupo 1 - Ventos" required class="input-grande bg-white mt-1">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="label-grande">Próxima Data:</label>
+                                <input type="date" id="faxina-data" required class="input-grande bg-white mt-1">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="label-grande">Observação / Horário:</label>
+                                <input type="text" id="faxina-obs" placeholder="Ex: Sábado às 09:00h" class="input-grande bg-white mt-1">
+                            </div>
+                            <div class="md:col-span-2">
+                                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-lg transition h-[48px] shadow-sm">Criar Grupo</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- MOVER / ADICIONAR FILHO A UM GRUPO -->
+                    <div class="bg-teal-50/50 p-6 rounded-xl border border-teal-200 mb-8">
+                        <h3 class="text-sm font-bold text-teal-900 mb-4"><i class="fa-solid fa-arrows-left-right mr-2 text-teal-600"></i>Alocar ou Mover Integrante de Grupo</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <div class="md:col-span-5">
+                                <label class="label-grande">Selecionar Filho:</label>
+                                <select id="select-filho-faxina" class="input-grande bg-white mt-1 cursor-pointer"></select>
+                            </div>
+                            <div class="md:col-span-5">
+                                <label class="label-grande">Destino (Grupo):</label>
+                                <select id="select-grupo-faxina" class="input-grande bg-white mt-1 cursor-pointer"></select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <button onclick="moverFilhoGrupo()" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-lg transition h-[48px] shadow-sm">Salvar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LISTA DE GRUPOS E SEUS INTEGRANTES -->
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Grupos Ativos & Escalas:</h3>
+                    <div id="lista-grupos-faxina" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="text-center py-10 text-slate-400 col-span-2"><div class="loader"></div></div>
+                    </div>
                 </div>
 
                 <!-- MENSALIDADES & FILHOS -->
@@ -424,17 +492,21 @@
         const dataHoje = new Date().toISOString().split('T')[0];
         if(document.getElementById('novo-filho-data')) document.getElementById('novo-filho-data').value = dataHoje;
         if(document.getElementById('gira-data')) document.getElementById('gira-data').value = dataHoje;
+        if(document.getElementById('faxina-data')) document.getElementById('faxina-data').value = dataHoje;
 
         // --- SISTEMA DE EXCLUSÃO GLOBAL ---
         window.apagarItem = async function(tabela, id) {
             let msg = "Tem certeza que deseja apagar este registo?";
             if(tabela === 'filhos') msg = "CRÍTICO: Remover este integrante apagará também o seu histórico financeiro. Confirmar?";
+            if(tabela === 'grupos_faxina') msg = "Deseja apagar este grupo de faxina? Os integrantes ficarão sem grupo.";
             
             if(confirm(msg)) {
                 await supabase.from(tabela).delete().eq('id', id);
                 
                 if(tabela === 'caixa') {
                     carregarCaixa();
+                } else if(tabela === 'grupos_faxina') {
+                    carregarFaxinaAdmin();
                 } else {
                     carregarListaGeral();
                     if(tabela === 'giras') carregarGiras();
@@ -469,12 +541,13 @@
 
         // --- SISTEMA GERAL E NAVEGAÇÃO ---
         window.abrirAba = function(abaId) {
-            const paineis = ['aba-bem-vindo', 'form-gira', 'form-aviso', 'form-mensalidade', 'form-financeiro', 'lista-geral'];
+            const paineis = ['aba-bem-vindo', 'form-gira', 'form-aviso', 'form-faxina', 'form-mensalidade', 'form-financeiro', 'lista-geral'];
             paineis.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); });
             const aba = document.getElementById(abaId);
             if(aba) aba.classList.remove('hidden');
             
             if(abaId === 'form-gira') carregarGiras();
+            if(abaId === 'form-faxina') carregarFaxinaAdmin();
             if(abaId === 'form-mensalidade') carregarMensalidades();
             if(abaId === 'form-financeiro') carregarCaixa();
             if(abaId === 'lista-geral') carregarListaGeral();
@@ -559,8 +632,18 @@
 
         // --- PAINEL DO FILHO (USUÁRIO COMUM) ---
         async function carregarPainelDoFilho() {
+            // Buscar dados atualizados do filho (caso o admin tenha mudado ele de grupo recentemente)
+            const { data: userFresh } = await supabase.from('filhos').select('*').eq('id', usuarioLogado.id).maybeSingle();
+            if (userFresh) {
+                usuarioLogado = userFresh;
+                localStorage.setItem('umbanda_user_session', JSON.stringify(usuarioLogado));
+            }
+
             document.getElementById('user-nome-display').innerText = usuarioLogado.nome.split(' ')[0];
             
+            // 0. Carregar Escala de Faxina do Filho
+            await carregarEscalaDoFilho();
+
             // 1. Carregar Avisos
             const hoje = new Date().toISOString().split('T')[0];
             const resAvisos = await supabase.from('avisos').select('*').gte('data_expiracao', hoje).order('data_publicacao', { ascending: false });
@@ -577,7 +660,7 @@
                 containerAvisos.innerHTML = htmlAv;
             }
 
-            // 2. Carregar Ficha Financeira Pessoal (Atualizado para incluir o mês corrente logo no dia 1)
+            // 2. Carregar Ficha Financeira Pessoal
             const [resPagos, resExtras] = await Promise.all([
                 supabase.from('mensalidades').select('*').eq('filho_id', usuarioLogado.id),
                 supabase.from('debitos_extras').select('*').eq('filho_id', usuarioLogado.id)
@@ -589,8 +672,6 @@
             const dataInicio = new Date(usuarioLogado.data_entrada || usuarioLogado.data_cadastro || dataHoje);
             const dataAtual = new Date();
             let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
-            
-            // Alterado para incluir o mês atual independentemente do dia
             let hojeData = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
             
             let mesesList = [];
@@ -606,7 +687,6 @@
                 let mesStr = `${m.ano}-${m.mes.toString().padStart(2, '0')}`;
                 let isPago = pagamentos.includes(mesStr);
                 
-                // O mês atual ou anterior é cobrado se não estiver pago
                 if(!isPago) {
                     valorDevidoMeses += 100;
                     htmlMeses += `<div class="flex justify-between items-center p-2 border border-red-200 bg-red-50/50 rounded-lg text-sm"><span class="font-bold text-slate-800">${mesesNomesCompletos[m.mes-1]} ${m.ano}</span><span class="text-red-600 font-bold">R$ 100,00</span></div>`;
@@ -635,6 +715,224 @@
 
             // 3. Carregar Giras para o usuário ver
             carregarGiras();
+        }
+
+        // --- FUNÇÃO PARA EXIBIR ESCALA DE FAXINA NO PAINEL DO FILHO ---
+        async function carregarEscalaDoFilho() {
+            const container = document.getElementById('user-escala-faxina');
+            
+            if (!usuarioLogado.grupo_faxina_id) {
+                container.innerHTML = `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                        <p class="text-xs text-slate-500 font-medium">Você ainda não foi alocado em nenhum grupo de limpeza.</p>
+                    </div>`;
+                return;
+            }
+
+            const [resGrupo, resColegas] = await Promise.all([
+                supabase.from('grupos_faxina').select('*').eq('id', usuarioLogado.grupo_faxina_id).maybeSingle(),
+                supabase.from('filhos').select('id, nome').eq('grupo_faxina_id', usuarioLogado.grupo_faxina_id).order('nome')
+            ]);
+
+            if (!resGrupo.data) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center">Grupo não encontrado.</p>`;
+                return;
+            }
+
+            const grupo = resGrupo.data;
+            const colegas = resColegas.data || [];
+            const hoje = new Date().toISOString().split('T')[0];
+            
+            let dataFormatada = 'A definir';
+            let alertaDia = '';
+
+            if (grupo.proxima_data) {
+                const [ano, mes, dia] = grupo.proxima_data.split('-');
+                dataFormatada = `${dia}/${mes}/${ano}`;
+
+                if (grupo.proxima_data === hoje) {
+                    alertaDia = `<div class="bg-amber-100 border border-amber-300 text-amber-900 text-xs font-black p-3 rounded-lg mb-3 flex items-center justify-center uppercase tracking-wide animate-pulse"><i class="fa-solid fa-bell mr-2"></i> Hoje é o seu dia de faxina!</div>`;
+                } else if (grupo.proxima_data > hoje) {
+                    alertaDia = `<div class="bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold p-2.5 rounded-lg mb-3 text-center"><i class="fa-regular fa-calendar-check mr-1"></i> Próxima escala agendada</div>`;
+                }
+            }
+
+            const listaNomes = colegas.map(c => 
+                c.id === usuarioLogado.id 
+                ? `<span class="inline-block bg-teal-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">${c.nome.split(' ')[0]} (Você)</span>`
+                : `<span class="inline-block bg-slate-100 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200">${c.nome.split(' ')[0]}</span>`
+            ).join(' ');
+
+            container.innerHTML = `
+                ${alertaDia}
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Seu Grupo</span>
+                        <span class="text-xs font-black text-teal-700 bg-teal-100 px-2.5 py-0.5 rounded-full">${grupo.nome}</span>
+                    </div>
+                    <div class="border-t border-slate-200/70 pt-2 mt-2 flex justify-between items-baseline">
+                        <span class="text-xs font-bold text-slate-500">Dia da Limpeza:</span>
+                        <span class="text-lg font-black text-slate-900">${dataFormatada}</span>
+                    </div>
+                    ${grupo.observacao ? `<p class="text-xs text-slate-600 mt-2 bg-white p-2 rounded border border-slate-100"><i class="fa-regular fa-clock mr-1 text-teal-600"></i> ${grupo.observacao}</p>` : ''}
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sua Equipe (${colegas.length}):</p>
+                    <div class="flex flex-wrap gap-1.5">${listaNomes}</div>
+                </div>
+            `;
+        }
+
+        // --- SISTEMA DE ESCALA DE FAXINA (ADMIN) ---
+        window.carregarFaxinaAdmin = async function() {
+            const container = document.getElementById('lista-grupos-faxina');
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 col-span-2"><div class="loader"></div></div>';
+
+            const [resGrupos, resFilhos] = await Promise.all([
+                supabase.from('grupos_faxina').select('*').order('proxima_data', { ascending: true }),
+                supabase.from('filhos').select('*').order('nome')
+            ]);
+
+            const grupos = resGrupos.data || [];
+            const filhos = resFilhos.data || [];
+
+            // Popular Select de Filhos
+            const selectFilho = document.getElementById('select-filho-faxina');
+            selectFilho.innerHTML = filhos.map(f => {
+                const grpAtual = grupos.find(g => g.id === f.grupo_faxina_id);
+                const labelGrp = grpAtual ? ` (Atual: ${grpAtual.nome})` : ' (Sem grupo)';
+                return `<option value="${f.id}">${f.nome}${labelGrp}</option>`;
+            }).join('');
+
+            // Popular Select de Grupos
+            const selectGrupo = document.getElementById('select-grupo-faxina');
+            selectGrupo.innerHTML = `<option value="">-- Sem Grupo (Remover da escala) --</option>` + 
+                grupos.map(g => `<option value="${g.id}">${g.nome}</option>`).join('');
+
+            if (grupos.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6 text-sm">Nenhum grupo de faxina criado ainda. Crie o primeiro grupo acima.</p>';
+                return;
+            }
+
+            let html = '';
+            grupos.forEach(grupo => {
+                const membros = filhos.filter(f => f.grupo_faxina_id === grupo.id);
+                const dataFormatada = grupo.proxima_data ? grupo.proxima_data.split('-').reverse().join('/') : 'Sem data definida';
+
+                let membrosHtml = '';
+                if (membros.length === 0) {
+                    membrosHtml = `<p class="text-xs text-slate-400 italic py-2">Nenhum integrante neste grupo.</p>`;
+                } else {
+                    membrosHtml = membros.map(m => `
+                        <div class="flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                            <span class="font-semibold text-slate-700"><i class="fa-solid fa-user text-slate-400 mr-2 text-xs"></i>${m.nome}</span>
+                            <button onclick="removerFilhoDoGrupo('${m.id}')" title="Tirar do grupo" class="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-0.5 rounded hover:bg-red-50 transition">
+                                <i class="fa-solid fa-user-minus mr-1"></i>Tirar
+                            </button>
+                        </div>
+                    `).join('');
+                }
+
+                html += `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-black text-base">${grupo.nome}</h4>
+                                <p class="text-xs text-teal-400 font-semibold mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> Próxima Limpeza: ${dataFormatada}</p>
+                            </div>
+                            <button onclick="apagarItem('grupos_faxina', '${grupo.id}')" title="Excluir Grupo" class="text-slate-400 hover:text-red-400 transition p-2">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-4 bg-slate-50/70 border-b border-slate-200 space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase">Mudar Data:</label>
+                                    <input type="date" id="data-grp-${grupo.id}" value="${grupo.proxima_data || ''}" class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase">Horário / Obs:</label>
+                                    <input type="text" id="obs-grp-${grupo.id}" value="${grupo.observacao || ''}" placeholder="Ex: Sábado 8h" class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg mt-1">
+                                </div>
+                            </div>
+                            <button onclick="atualizarAgendaGrupo('${grupo.id}')" class="w-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold py-2 rounded-lg transition">
+                                Atualizar Data / Observação
+                            </button>
+                        </div>
+
+                        <div class="p-4">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Integrantes (${membros.length}):</p>
+                            <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                ${membrosHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        window.criarGrupoFaxina = async function(event) {
+            event.preventDefault();
+            const nome = document.getElementById('faxina-nome').value.trim();
+            const proxima_data = document.getElementById('faxina-data').value;
+            const observacao = document.getElementById('faxina-obs').value.trim();
+
+            const { error } = await supabase.from('grupos_faxina').insert([{ nome, proxima_data, observacao }]);
+            if (!error) {
+                document.getElementById('faxina-nome').value = '';
+                document.getElementById('faxina-obs').value = '';
+                carregarFaxinaAdmin();
+            } else {
+                alert("Erro ao criar grupo. Verifique se executou o comando SQL no Supabase.");
+            }
+        }
+
+        window.atualizarAgendaGrupo = async function(grupoId) {
+            const novaData = document.getElementById(`data-grp-${grupoId}`).value;
+            const novaObs = document.getElementById(`obs-grp-${grupoId}`).value.trim();
+
+            const { error } = await supabase
+                .from('grupos_faxina')
+                .update({ proxima_data: novaData || null, observacao: novaObs })
+                .eq('id', grupoId);
+
+            if (!error) {
+                alert("Escala do grupo atualizada!");
+                carregarFaxinaAdmin();
+            }
+        }
+
+        window.moverFilhoGrupo = async function() {
+            const filhoId = document.getElementById('select-filho-faxina').value;
+            const grupoId = document.getElementById('select-grupo-faxina').value;
+
+            if (!filhoId) return;
+
+            const { error } = await supabase
+                .from('filhos')
+                .update({ grupo_faxina_id: grupoId === "" ? null : grupoId })
+                .eq('id', filhoId);
+
+            if (!error) {
+                carregarFaxinaAdmin();
+            } else {
+                alert("Erro ao mover integrante.");
+            }
+        }
+
+        window.removerFilhoDoGrupo = async function(filhoId) {
+            const { error } = await supabase
+                .from('filhos')
+                .update({ grupo_faxina_id: null })
+                .eq('id', filhoId);
+
+            if (!error) {
+                carregarFaxinaAdmin();
+            }
         }
 
         // --- SISTEMAS DE GIRAS ---
@@ -737,8 +1035,6 @@
                 const extras = debitosExtrasLocal.filter(e => e.filho_id === filho.id);
                 
                 let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
-                
-                // Alterado para incluir o mês atual no cálculo de dívida administrativa também
                 let hojeData = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
                 let mesesAtrasados = 0; let totalExtras = 0;
                 
@@ -771,8 +1067,6 @@
             const dataInicio = new Date(filho.data_entrada || filho.data_cadastro);
             
             let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
-            
-            // Inclui o mês atual na listagem da ficha admin
             let hojeData = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
             let mesesList = []; let mesesAtrasados = 0;
             
@@ -865,9 +1159,9 @@
         window.carregarListaGeral = async function() {
             const [g, a, f] = await Promise.all([ supabase.from('giras').select('*').order('data', { ascending: false }), supabase.from('avisos').select('*').order('data_publicacao', { ascending: false }), supabase.from('filhos').select('*').order('nome') ]);
             
-            document.getElementById('admin-lista-giras').innerHTML = g.data.map(i => `<div class="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-lg"><span class="text-sm">${i.data.split('-').reverse().join('/')} &bull; ${i.linha_trabalho}</span><button onclick="apagarItem('giras', '${i.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`).join('');
-            document.getElementById('admin-lista-avisos').innerHTML = a.data.map(i => `<div class="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-lg"><span class="text-sm font-medium truncate">${i.titulo}</span><button onclick="apagarItem('avisos', '${i.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`).join('');
-            document.getElementById('admin-lista-filhos').innerHTML = f.data.map(i => `<div class="flex justify-between items-center p-3 bg-white border border-red-100 rounded-lg"><span class="text-sm font-bold">${i.nome}</span><button onclick="apagarItem('filhos', '${i.id}')" class="text-red-500 text-xs font-bold">Remover</button></div>`).join('');
+            document.getElementById('admin-lista-giras').innerHTML = (g.data || []).map(i => `<div class="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-lg"><span class="text-sm">${i.data.split('-').reverse().join('/')} &bull; ${i.linha_trabalho}</span><button onclick="apagarItem('giras', '${i.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+            document.getElementById('admin-lista-avisos').innerHTML = (a.data || []).map(i => `<div class="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-lg"><span class="text-sm font-medium truncate">${i.titulo}</span><button onclick="apagarItem('avisos', '${i.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+            document.getElementById('admin-lista-filhos').innerHTML = (f.data || []).map(i => `<div class="flex justify-between items-center p-3 bg-white border border-red-100 rounded-lg"><span class="text-sm font-bold">${i.nome}</span><button onclick="apagarItem('filhos', '${i.id}')" class="text-red-500 text-xs font-bold">Remover</button></div>`).join('');
         }
 
         verificarSessao();
