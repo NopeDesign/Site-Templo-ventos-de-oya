@@ -1,0 +1,28 @@
+{
+  "name": "Templo de Umbanda Ventos de Oya",
+  "short_name": "Ventos de Oya",
+  "description": "Portal da Corrente - Calendário de Giras, Escalas e Financeiro.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "src/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://ui-avatars.com/api/?name=VO&background=e03131&color=fff&size=192&rounded=true&bold=true&format=png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://ui-avatars.com/api/?name=VO&background=e03131&color=fff&size=512&rounded=true&bold=true&format=png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

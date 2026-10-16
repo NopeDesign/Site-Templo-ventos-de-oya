@@ -1,0 +1,40 @@
+const CACHE_NAME = 'ventos-de-oya-v1';
+const ASSETS = [
+    './',
+    './index.html',
+    './css/style.css',
+    './js/main.js',
+    './js/config.js',
+    './js/auth.js',
+    './js/painelFilho.js',
+    './js/girasAvisos.js',
+    './js/faxina.js',
+    './js/financeiro.js'
+];
+
+// Instala o Service Worker e guarda a estrutura básica
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    );
+});
+
+// Limpa caches antigos quando atualizar a versão
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((keys) =>
+            Promise.all(keys.map((key) => {
+                if (key !== CACHE_NAME) return caches.delete(key);
+            }))
+        )
+    );
+});
+
+// Prioriza sempre a rede (para buscar dados frescos do Supabase) com fallback para o cache
+self.addEventListener('fetch', (event) => {
+    if (event.request.url.includes('supabase.co')) return;
+    event.respondWith(
+        fetch(event.request).catch(() => caches.match(event.request))
+    );
+});
