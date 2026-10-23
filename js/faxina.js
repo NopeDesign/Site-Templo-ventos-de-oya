@@ -1,6 +1,5 @@
 import { supabase, state } from './config.js';
 
-// 1. ESCALA DO FILHO (Cole aqui)
 export async function carregarEscalaDoFilho() {
     const container = document.getElementById('user-escala-faxina');
     const user = state.usuarioLogado;
@@ -73,7 +72,6 @@ export async function carregarEscalaDoFilho() {
     `;
 }
 
-// 2. GESTÃO DE FAXINA PARA O ADMIN
 export async function carregarFaxinaAdmin() {
     const container = document.getElementById('lista-grupos-faxina');
     if (!container) return;

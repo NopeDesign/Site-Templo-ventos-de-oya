@@ -1,18 +1,16 @@
-const CACHE_NAME = 'ventos-de-oya-v1';
+const CACHE_NAME = 'ventos-de-oya-v3';
 const ASSETS = [
-    './',
-    './index.html',
-    './css/style.css',
-    './js/main.js',
-    './js/config.js',
-    './js/auth.js',
-    './js/painelFilho.js',
-    './js/girasAvisos.js',
-    './js/faxina.js',
-    './js/financeiro.js'
+    '/',
+    '/css/style.css',
+    '/js/main.js',
+    '/js/config.js',
+    '/js/auth.js',
+    '/js/painelFilho.js',
+    '/js/girasAvisos.js',
+    '/js/faxina.js',
+    '/js/financeiro.js'
 ];
 
-// Instala o Service Worker e guarda a estrutura básica
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -20,7 +18,6 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Limpa caches antigos quando atualizar a versão
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
@@ -31,10 +28,26 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Prioriza sempre a rede (para buscar dados frescos do Supabase) com fallback para o cache
 self.addEventListener('fetch', (event) => {
     if (event.request.url.includes('supabase.co')) return;
     event.respondWith(
         fetch(event.request).catch(() => caches.match(event.request))
+    );
+});
+
+// Quando o filho clicar na notificação do telemóvel, abre o app
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            if (clientList.length > 0) {
+                let client = clientList[0];
+                for (let i = 0; i < clientList.length; i++) {
+                    if (clientList[i].focused) client = clientList[i];
+                }
+                return client.focus();
+            }
+            return clients.openWindow('/');
+        })
     );
 });

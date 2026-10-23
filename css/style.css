@@ -18,7 +18,6 @@ body {
 .text-oya { color: var(--cor-oya-vermelho); }
 .bg-oya { background-color: var(--cor-oya-coral); }
 
-/* Cartões Ultra Profissionais */
 .pro-card {
     background: #ffffff;
     border: 1px solid rgba(226, 232, 240, 0.85);
@@ -33,7 +32,6 @@ body {
     border-color: #cbd5e1;
 }
 
-/* Botões e Inputs */
 .btn-custom { 
     background-color: white; border: 1px solid #e2e8f0; color: #475569; 
     border-radius: 9999px; padding: 0.5rem 1.25rem; font-weight: 600; font-size: 0.875rem;
@@ -51,18 +49,15 @@ body {
 }
 .label-grande { font-size: 0.85rem; font-weight: 700; color: #334155; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.025em; }
 
-/* Loader & Modal */
 .loader { border: 3px solid #f1f5f9; border-radius: 50%; border-top: 3px solid var(--cor-oya-vermelho); width: 24px; height: 24px; animation: spin 0.8s linear infinite; display: inline-block; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 .modal-bg { background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); }
 
-/* Scrollbar Fina e Elegante */
 .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scroll::-webkit-scrollbar-track { background: transparent; }
 .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
 .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* Animação para Notificações (Toast) */
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 .toast-anim { animation: slideIn 0.3s ease forwards; }

@@ -67,21 +67,17 @@ export async function carregarGiras() {
 
         html += `
         <div class="pro-card pro-card-hover p-5 flex flex-col sm:flex-row items-start sm:items-center gap-5 ${isProx ? "ring-2 ring-blue-500/20 bg-gradient-to-r from-blue-50/40 to-white border-blue-200" : ""}">
-            
-            <!-- BLOCO DE DATA -->
             <div class="flex flex-col items-center justify-center ${isProx ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "bg-slate-100 text-slate-800"} rounded-2xl p-3.5 min-w-[76px] text-center shrink-0">
                 <span class="text-[10px] font-extrabold uppercase tracking-widest ${isProx ? "text-blue-200" : "text-slate-400"}">${mesesNomesCompletos[parseInt(mes)-1].substring(0,3)}</span>
                 <span class="text-2xl font-black leading-none mt-1">${dia}</span>
             </div>
 
-            <!-- DETALHES DA GIRA -->
             <div class="flex-grow space-y-2.5 w-full">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <h3 class="font-extrabold text-lg text-slate-900 tracking-tight">${gira.linha_trabalho}</h3>
                     ${isProx ? `<span class="bg-blue-100 text-blue-700 border border-blue-200 text-[11px] px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span> Próxima Gira</span>` : ''}
                 </div>
 
-                <!-- PÍLULAS DE INFORMAÇÃO -->
                 <div class="flex flex-wrap items-center gap-2 pt-0.5">
                     <span class="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200/60">
                         <i class="fa-regular fa-clock text-slate-400"></i> ${horaAb}h

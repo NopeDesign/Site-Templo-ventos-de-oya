@@ -28,7 +28,7 @@ export async function realizarLogin(event) {
         .eq('senha', senhaInput)
         .maybeSingle();
 
-    btn.innerHTML = 'Entrar';
+    btn.innerHTML = 'Aceder ao Portal <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>';
 
     if (error || !data) {
         erroDiv.classList.remove('hidden');

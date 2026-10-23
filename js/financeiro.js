@@ -69,7 +69,6 @@ export function abrirFicha(filho_id) {
     let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
     let hojeData = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     
-    // Verifica se há meses futuros já adiantados para estender a lista visualmente
     let dataLimite = new Date(hojeData);
     pagamentos.forEach(mesStr => {
         const [anoP, mesP] = mesStr.split('-').map(Number);

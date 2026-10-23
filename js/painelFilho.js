@@ -14,7 +14,7 @@ export async function carregarPainelDoFilho() {
     
     await carregarEscalaDoFilho();
 
-    // 1. Avisos (Mural de Comunicados)
+    // 1. Avisos
     const hoje = new Date().toISOString().split('T')[0];
     const resAvisos = await supabase.from('avisos').select('*').gte('data_expiracao', hoje).order('data_publicacao', { ascending: false });
     const containerAvisos = document.getElementById('user-mural-avisos');
@@ -60,7 +60,6 @@ export async function carregarPainelDoFilho() {
     let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
     let hojeData = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
     
-    // Estende a visualização caso o filho tenha meses futuros adiantados
     let dataLimite = new Date(hojeData);
     pagamentos.forEach(mesStr => {
         const [anoP, mesP] = mesStr.split('-').map(Number);

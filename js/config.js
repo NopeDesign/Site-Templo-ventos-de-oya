@@ -12,7 +12,6 @@ export const mesesNomesCompletos = [
 
 export const dataHoje = new Date().toISOString().split('T')[0];
 
-// Estado global compartilhado entre os arquivos
 export const state = {
     usuarioLogado: null,
     filhosDataLocal: [],

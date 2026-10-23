@@ -6,13 +6,13 @@
     <title>Templo de Umbanda Ventos de Oya</title>
     
     <!-- CONFIGURAÇÃO PWA (APLICATIVO INSTALÁVEL) -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ventos de Oya">
-    <link rel="apple-touch-icon" href="src/logo.svg">
+    <link rel="apple-touch-icon" href="/src/logo.svg">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -23,7 +23,6 @@
     <!-- CONTENTOR DE NOTIFICAÇÕES (TOASTS) -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
 
-    <!-- HEADER -->
     <!-- HEADER -->
     <header class="bg-white/85 backdrop-blur-lg border-b border-slate-200/80 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,8 +36,13 @@
                         <p class="text-[11px] text-slate-400 font-bold tracking-widest uppercase mt-1">Portal da Corrente</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2.5">
-                    <!-- BOTÃO DE INSTALAR APLICATIVO (Aparece automaticamente quando disponível) -->
+                <div class="flex items-center gap-2">
+                    <!-- BOTÃO DE ATIVAR NOTIFICAÇÕES NO TELEMÓVEL -->
+                    <button onclick="pedirPermissaoNotificacao()" id="btn-notificacoes" class="hidden bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold px-3.5 py-2 rounded-full transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-bell animate-bounce"></i> <span class="hidden sm:inline">Ativar Alertas</span>
+                    </button>
+
+                    <!-- BOTÃO DE INSTALAR APLICATIVO -->
                     <button onclick="instalarApp()" id="btn-instalar-app" class="hidden bg-slate-900 hover:bg-red-600 text-white text-xs font-bold px-4 py-2.5 rounded-full transition shadow-sm flex items-center gap-2">
                         <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Instalar App</span>
                     </button>
@@ -81,7 +85,7 @@
         </div>
     </main>
 
-    <!-- PAINEL DO FILHO (DESIGN BENTO GRID PROFISSIONAL) -->
+    <!-- PAINEL DO FILHO -->
     <main id="user-dashboard-view" class="hidden flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
         
         <!-- HERO BANNER BOAS-VINDAS -->
@@ -101,10 +105,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            <!-- COLUNA ESQUERDA (4 COLUNAS): Escala de Faxina & Resumo Financeiro -->
+            <!-- COLUNA ESQUERDA -->
             <div class="lg:col-span-4 space-y-6">
-                
                 <!-- CARD: ESCALA DE FAXINA -->
                 <div class="pro-card p-6 relative overflow-hidden">
                     <div class="flex items-center justify-between mb-5">
@@ -154,9 +156,8 @@
                 </div>
             </div>
 
-            <!-- COLUNA DIREITA (8 COLUNAS): Avisos e Calendário -->
+            <!-- COLUNA DIREITA -->
             <div class="lg:col-span-8 space-y-8">
-                
                 <!-- MURAL DE AVISOS -->
                 <div class="pro-card p-6 sm:p-8">
                     <div class="flex items-center gap-3 mb-5">
@@ -188,7 +189,6 @@
                         <div class="text-center py-12 text-slate-400"><div class="loader mb-3"></div><br>A sincronizar calendário...</div>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
