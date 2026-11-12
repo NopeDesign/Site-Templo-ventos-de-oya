@@ -1,32 +1,71 @@
 import { supabase, state, mesesNomesCompletos } from './config.js';
+import { gerarHtmlRadarAniversariantes } from './painelFilho.js';
 
 export async function adicionarFilho(event) {
     event.preventDefault();
+    const nascimentoVal = document.getElementById('novo-filho-nascimento').value;
     const { error } = await supabase.from('filhos').insert([{ 
         nome: document.getElementById('novo-filho-nome').value, 
+        data_nascimento: nascimentoVal ? nascimentoVal : null,
         data_entrada: document.getElementById('novo-filho-data').value,
         senha: document.getElementById('novo-filho-senha').value,
         is_admin: document.getElementById('novo-filho-admin').checked,
         valor_mensalidade: 100.00 
     }]);
-    if(!error) { document.getElementById('novo-filho-nome').form.reset(); carregarMensalidades(); alert("Integrante Adicionado!"); }
-    else alert("Erro ao cadastrar.");
+    if(!error) { 
+        document.getElementById('novo-filho-nome').form.reset(); 
+        carregarMensalidades(); 
+        if (window.mostrarToast) window.mostrarToast("Integrante Adicionado!", "Novo filho registado na corrente.");
+    } else {
+        alert("Erro ao cadastrar. Verifique se executou o comando SQL da coluna data_nascimento no Supabase.");
+    }
+}
+
+export async function salvarDatasFilho() {
+    if (!state.filhoSendoEditado) return;
+    const nasc = document.getElementById('edit-filho-nascimento').value;
+    const entr = document.getElementById('edit-filho-entrada').value;
+
+    const { error } = await supabase.from('filhos').update({
+        data_nascimento: nasc ? nasc : null,
+        data_entrada: entr ? entr : null
+    }).eq('id', state.filhoSendoEditado);
+
+    if (!error) {
+        if (window.mostrarToast) window.mostrarToast("Datas Atualizadas!", "A data de nascimento e ingresso foram salvas.");
+        await carregarMensalidades();
+        abrirFicha(state.filhoSendoEditado);
+    } else {
+        alert("Erro ao salvar datas. Verifique se criou a coluna data_nascimento no Supabase.");
+    }
 }
 
 export async function carregarMensalidades() {
     const container = document.getElementById('lista-filhos-limpa');
     container.innerHTML = '<div class="text-center py-10 text-slate-400 col-span-2"><div class="loader"></div></div>';
     
-    const [resF, resP, resE] = await Promise.all([
+    const [resF, resP, resE, resC] = await Promise.all([
         supabase.from('filhos').select('*').order('nome'),
         supabase.from('mensalidades').select('*'),
-        supabase.from('debitos_extras').select('*')
+        supabase.from('debitos_extras').select('*'),
+        supabase.from('comprovantes').select('*').order('created_at', { ascending: false })
     ]);
-    if (!resF.data || resF.data.length === 0) { container.innerHTML = '<p class="text-slate-400">Nenhum integrante.</p>'; return; }
 
-    state.filhosDataLocal = resF.data;
+    state.filhosDataLocal = resF.data || [];
     state.pagamentosDataLocal = resP.data || [];
     state.debitosExtrasLocal = resE.data || [];
+    state.comprovantesLocal = resC.data || [];
+
+    // Atualiza o Radar de Aniversariantes no Painel Admin
+    const radarAdmin = document.getElementById('admin-radar-aniversariantes');
+    if (radarAdmin) radarAdmin.innerHTML = gerarHtmlRadarAniversariantes(state.filhosDataLocal);
+
+    renderizarComprovantesAdmin();
+
+    if (state.filhosDataLocal.length === 0) {
+        container.innerHTML = '<p class="text-slate-400">Nenhum integrante.</p>';
+        return;
+    }
     
     const dataAtual = new Date();
     let html = '';
@@ -34,6 +73,7 @@ export async function carregarMensalidades() {
         const dataInicio = new Date(filho.data_entrada || filho.data_cadastro);
         const pagamentos = state.pagamentosDataLocal.filter(p => p.filho_id === filho.id).map(p => p.mes_ano);
         const extras = state.debitosExtrasLocal.filter(e => e.filho_id === filho.id);
+        const temComp = state.comprovantesLocal.some(c => c.filho_id === filho.id);
         
         let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
         let hojeData = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
@@ -48,14 +88,95 @@ export async function carregarMensalidades() {
 
         let totalDivida = (mesesAtrasados * 100) + totalExtras;
         let cargoBadge = filho.is_admin ? `<span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded ml-2 font-bold uppercase">Admin</span>` : '';
+        let compBadge = temComp ? `<span class="bg-teal-600 text-white text-[10px] px-2 py-0.5 rounded-full ml-2 font-extrabold uppercase animate-pulse"><i class="fa-solid fa-receipt mr-1"></i>Comprovante</span>` : '';
         
         html += `
             <div onclick="abrirFicha('${filho.id}')" class="cursor-pointer flex justify-between items-center p-5 rounded-xl border ${totalDivida > 0 ? "border-red-200 bg-red-50/30" : "border-slate-200 bg-white"} hover:shadow-md transition">
-                <div><p class="font-bold text-slate-800 text-base capitalize">${filho.nome} ${cargoBadge}</p><p class="text-xs mt-1 ${totalDivida>0?'text-red-600 font-bold':'text-emerald-600 font-semibold'}">${totalDivida>0? `Dívida: R$ ${totalDivida.toFixed(2)}` : 'Em dia'}</p></div>
+                <div>
+                    <p class="font-bold text-slate-800 text-base capitalize">${filho.nome} ${cargoBadge}${compBadge}</p>
+                    <p class="text-xs mt-1 ${totalDivida>0?'text-red-600 font-bold':'text-emerald-600 font-semibold'}">${totalDivida>0? `Dívida: R$ ${totalDivida.toFixed(2)}` : 'Em dia'}</p>
+                </div>
                 <i class="fa-solid fa-chevron-right text-slate-300"></i>
             </div>`;
     });
     container.innerHTML = html;
+}
+
+function renderizarComprovantesAdmin() {
+    const container = document.getElementById('lista-comprovantes-admin');
+    const badgeMenu = document.getElementById('badge-comprovantes-menu');
+    const comps = state.comprovantesLocal || [];
+
+    if (badgeMenu) {
+        if (comps.length > 0) {
+            badgeMenu.innerText = comps.length;
+            badgeMenu.classList.remove('hidden');
+        } else {
+            badgeMenu.classList.add('hidden');
+        }
+    }
+
+    if (!container) return;
+
+    if (comps.length === 0) {
+        container.innerHTML = `<p class="text-xs text-teal-800/70 italic">Nenhum comprovante pendente no momento.</p>`;
+        return;
+    }
+
+    container.innerHTML = comps.map(c => {
+        const dataEnvio = new Date(c.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return `
+        <div class="bg-white p-4 rounded-xl border border-teal-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-extrabold text-slate-900 text-sm capitalize">${c.filho_nome}</span>
+                    <span class="text-[11px] text-slate-400 font-semibold">&bull; ${dataEnvio}</span>
+                </div>
+                <p class="text-xs text-teal-700 font-bold mt-0.5">Ref: ${c.observacao} <span class="text-slate-400 font-normal">(Ficha: ${c.valor_pendente || 'R$ 0,00'})</span></p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <button onclick="verComprovanteModal('${c.id}')" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-regular fa-eye"></i> Ver Foto/PDF
+                </button>
+                <button onclick="abrirFicha('${c.filho_id}')" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-folder-open"></i> Dar Baixa na Ficha
+                </button>
+                <button onclick="apagarComprovante('${c.id}')" title="Apagar Comprovante" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1">
+                    <i class="fa-solid fa-trash"></i> Apagar
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+export function verComprovanteModal(compId) {
+    const comp = state.comprovantesLocal.find(c => c.id === compId);
+    if (!comp) return;
+
+    document.getElementById('modal-comp-titulo').innerText = `Comprovante de ${comp.filho_nome}`;
+    document.getElementById('modal-comp-subtitulo').innerText = `Referente a: ${comp.observacao}`;
+    const corpo = document.getElementById('modal-comp-corpo');
+
+    if (comp.arquivo_tipo && comp.arquivo_tipo.includes('pdf')) {
+        corpo.innerHTML = `<iframe src="${comp.arquivo_base64}" class="w-full h-[500px] rounded-xl border border-slate-300"></iframe>`;
+    } else {
+        corpo.innerHTML = `<img src="${comp.arquivo_base64}" alt="Comprovante" class="max-w-full max-h-[65vh] object-contain rounded-xl shadow-md">`;
+    }
+
+    document.getElementById('modal-comprovante').classList.remove('hidden');
+}
+
+export function fecharModalComprovante() {
+    document.getElementById('modal-comprovante').classList.add('hidden');
+    document.getElementById('modal-comp-corpo').innerHTML = '';
+}
+
+export async function apagarComprovante(compId) {
+    if (confirm("Já deu baixa na ficha? Deseja apagar este comprovante do sistema?")) {
+        await supabase.from('comprovantes').delete().eq('id', compId);
+        if (window.mostrarToast) window.mostrarToast("Comprovante Apagado!", "O comprovante foi removido da lista.");
+        carregarMensalidades();
+    }
 }
 
 export function abrirFicha(filho_id) {
@@ -65,6 +186,13 @@ export function abrirFicha(filho_id) {
     const extras = state.debitosExtrasLocal.filter(e => e.filho_id === filho.id);
     
     document.getElementById('ficha-nome').innerText = filho.nome;
+    
+    // Preenche os campos de edição de Nascimento e Ingresso
+    const inputEditNasc = document.getElementById('edit-filho-nascimento');
+    const inputEditEntr = document.getElementById('edit-filho-entrada');
+    if (inputEditNasc) inputEditNasc.value = filho.data_nascimento || '';
+    if (inputEditEntr) inputEditEntr.value = filho.data_entrada || '';
+
     const dataInicio = new Date(filho.data_entrada || filho.data_cadastro);
     let cursorData = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), 1);
     let hojeData = new Date(new Date().getFullYear(), new Date().getMonth(), 1);

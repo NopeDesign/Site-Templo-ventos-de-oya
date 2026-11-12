@@ -5,6 +5,12 @@ const supabaseKey = 'sb_publishable_2bhMn9r5dYyDgLFtC7XMhQ_ij3i_IVl';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+export const FINANCEIRO_CONFIG = {
+    chavePix: "temploventosdeoya@gmail.com",
+    favorecido: "Ricardo Ambrosio da Silva - Banco: Picpay",
+    whatsappNumero: "55119955304251" // Troque pelo seu número com DDD
+};
+
 export const mesesNomesCompletos = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
@@ -17,5 +23,7 @@ export const state = {
     filhosDataLocal: [],
     pagamentosDataLocal: [],
     debitosExtrasLocal: [],
-    filhoSendoEditado: null
+    comprovantesLocal: [],
+    filhoSendoEditado: null,
+    totalDividaUsuarioLogado: 0
 };

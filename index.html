@@ -37,12 +37,10 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- BOTÃO DE ATIVAR NOTIFICAÇÕES NO TELEMÓVEL -->
                     <button onclick="pedirPermissaoNotificacao()" id="btn-notificacoes" class="hidden bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold px-3.5 py-2 rounded-full transition flex items-center gap-1.5">
                         <i class="fa-solid fa-bell animate-bounce"></i> <span class="hidden sm:inline">Ativar Alertas</span>
                     </button>
 
-                    <!-- BOTÃO DE INSTALAR APLICATIVO -->
                     <button onclick="instalarApp()" id="btn-instalar-app" class="hidden bg-slate-900 hover:bg-red-600 text-white text-xs font-bold px-4 py-2.5 rounded-full transition shadow-sm flex items-center gap-2">
                         <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Instalar App</span>
                     </button>
@@ -99,7 +97,7 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Membro Ativo da Corrente
                     </span>
                     <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Olá, <span id="user-nome-display" class="text-red-400 capitalize"></span>!</h1>
-                    <p class="text-slate-300 text-sm sm:text-base mt-1.5 max-w-xl">Acompanhe a sua escala de manutenção, comunicados da direção, calendário de trabalhos e situação financeira.</p>
+                    <p class="text-slate-300 text-sm sm:text-base mt-1.5 max-w-xl">Acompanhe os seus cargos, postos de gira, escala de manutenção, comunicados e situação financeira.</p>
                 </div>
             </div>
         </div>
@@ -107,6 +105,26 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- COLUNA ESQUERDA -->
             <div class="lg:col-span-4 space-y-6">
+                
+                <!-- CARD: CARGOS E FUNÇÕES NA GIRA -->
+                <div class="pro-card p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-indigo-600"></div>
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                                <i class="fa-solid fa-clipboard-user text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide">Cargos & Postos da Gira</h3>
+                                <p class="text-xs text-slate-400 font-medium">Funções fixas e escala do dia</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="user-escala-gira">
+                        <div class="text-center py-6 text-slate-400"><div class="loader"></div></div>
+                    </div>
+                </div>
+
                 <!-- CARD: ESCALA DE FAXINA -->
                 <div class="pro-card p-6 relative overflow-hidden">
                     <div class="flex items-center justify-between mb-5">
@@ -125,7 +143,7 @@
                     </div>
                 </div>
 
-                <!-- CARD: RESUMO FINANCEIRO -->
+                <!-- CARD: RESUMO FINANCEIRO + PIX E COMPROVANTE NO SUPABASE -->
                 <div class="pro-card p-6">
                     <div class="flex items-center gap-3 mb-5">
                         <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
@@ -137,9 +155,41 @@
                         </div>
                     </div>
 
-                    <div id="box-saldo-user" class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 mb-6 text-center transition-colors">
+                    <div id="box-saldo-user" class="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 mb-5 text-center transition-colors">
                         <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Total Pendente</p>
                         <p class="text-3xl font-black text-emerald-600 tracking-tight" id="user-total-divida">R$ 0,00</p>
+                    </div>
+
+                    <!-- ÁREA PIX & ENVIO DE COMPROVANTE DIRETO PRO SITE -->
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 mb-6 space-y-3.5 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-brands fa-pix text-teal-400 text-base"></i>
+                                <span class="text-xs font-extrabold uppercase tracking-wider">Pagamento via PIX</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-semibold truncate max-w-[140px]" id="pix-chave-display">temploventosdeoya@gmail.com</span>
+                        </div>
+
+                        <button onclick="copiarChavePix()" type="button" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-regular fa-copy"></i> Copiar Chave PIX
+                        </button>
+
+                        <form id="form-comprovante-supabase" onsubmit="enviarComprovanteSupabase(event)" class="pt-2 border-t border-slate-800 space-y-2.5">
+                            <label class="block text-[11px] font-bold text-slate-300">Anexar Comprovante (Foto ou PDF):</label>
+                            <input type="file" id="input-arquivo-comprovante" accept="image/*,application/pdf" required class="block w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-white hover:file:bg-slate-700 cursor-pointer">
+                            
+                            <input type="text" id="input-obs-comprovante" placeholder="Referente a... (Ex: Mensalidade Nov)" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-teal-400">
+
+                            <button type="submit" id="btn-enviar-comprovante" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-teal-600"></i> Enviar Comprovante pelo Site
+                            </button>
+                        </form>
+
+                        <div id="user-comprovantes-enviados" class="space-y-1.5 pt-1"></div>
+
+                        <button onclick="enviarComprovanteWhatsApp()" type="button" class="w-full bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> Avisar pelo WhatsApp
+                        </button>
                     </div>
                     
                     <div>
@@ -158,6 +208,7 @@
 
             <!-- COLUNA DIREITA -->
             <div class="lg:col-span-8 space-y-8">
+                
                 <!-- MURAL DE AVISOS -->
                 <div class="pro-card p-6 sm:p-8">
                     <div class="flex items-center gap-3 mb-5">
@@ -170,6 +221,25 @@
                         </div>
                     </div>
                     <div id="user-mural-avisos" class="space-y-3"></div>
+                </div>
+
+                <!-- CARD: RADAR DE ANIVERSARIANTES (VIDA & TEMPO DE TERREIRO) -->
+                <div class="pro-card p-6 sm:p-8 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500"></div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center border border-pink-100">
+                                <i class="fa-solid fa-cake-candles text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-800 uppercase tracking-wide">Celebrações de <span id="mes-celebracao-titulo" class="text-pink-600"></span></h3>
+                                <p class="text-xs text-slate-400 font-medium">Aniversariantes do mês e tempo de corrente</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="user-radar-aniversariantes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="text-center py-6 text-slate-400 col-span-2"><div class="loader"></div></div>
+                    </div>
                 </div>
                 
                 <!-- CALENDÁRIO DE GIRAS -->
@@ -208,14 +278,21 @@
                 <button onclick="abrirAba('form-gira')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-blue-300 hover:bg-blue-50/40 flex items-center gap-4 transition group">
                     <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-regular fa-calendar-plus"></i></div> Giras & Calendário
                 </button>
+                <button onclick="abrirAba('form-escala-gira')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-purple-300 hover:bg-purple-50/40 flex items-center gap-4 transition group">
+                    <div class="bg-purple-50 text-purple-600 p-2.5 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-clipboard-user"></i></div> Cargos & Postos
+                </button>
                 <button onclick="abrirAba('form-aviso')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-amber-300 hover:bg-amber-50/40 flex items-center gap-4 transition group">
                     <div class="bg-amber-50 text-amber-600 p-2.5 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-bullhorn"></i></div> Criar Aviso
                 </button>
                 <button onclick="abrirAba('form-faxina')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-teal-300 hover:bg-teal-50/40 flex items-center gap-4 transition group">
                     <div class="bg-teal-50 text-teal-600 p-2.5 rounded-xl group-hover:bg-teal-600 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-broom"></i></div> Escala de Faxina
                 </button>
-                <button onclick="abrirAba('form-mensalidade')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40 flex items-center gap-4 transition group">
-                    <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-users"></i></div> Filhos & Mensalidades
+                <button onclick="abrirAba('form-mensalidade')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40 flex items-center justify-between transition group">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-users"></i></div>
+                        <span>Filhos & Mensalidades</span>
+                    </div>
+                    <span id="badge-comprovantes-menu" class="hidden bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">0</span>
                 </button>
                 <button onclick="abrirAba('form-financeiro')" class="w-full pro-card p-4 font-bold text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/40 flex items-center gap-4 transition group">
                     <div class="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition flex items-center justify-center w-10 h-10"><i class="fa-solid fa-wallet"></i></div> Caixa Financeiro
@@ -230,7 +307,7 @@
                 <div id="aba-bem-vindo" class="text-center py-24">
                     <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-sliders"></i></div>
                     <h2 class="text-lg font-bold text-slate-600">Selecione um módulo no menu lateral</h2>
-                    <p class="text-sm text-slate-400 mt-1">Gerencie giras, escalas de limpeza, avisos e finanças do templo.</p>
+                    <p class="text-sm text-slate-400 mt-1">Gerencie giras, cargos e postos de trabalho, escalas de limpeza, avisos e finanças do templo.</p>
                 </div>
 
                 <!-- GIRA -->
@@ -259,6 +336,59 @@
                     </form>
                     <h3 class="text-lg font-bold text-slate-800 mt-12 mb-4 pt-8 border-t border-slate-100">Próximas Giras Agendadas:</h3>
                     <div id="container-giras-admin"></div>
+                </div>
+
+                <!-- ABA: CARGOS FIXOS E ESCALA DE FUNÇÕES DA GIRA -->
+                <div id="form-escala-gira" class="hidden">
+                    <div class="mb-8 border-b border-slate-100 pb-5">
+                        <h2 class="text-2xl font-black text-slate-800 flex items-center"><i class="fa-solid fa-clipboard-user text-purple-600 mr-3"></i> Cargos da Casa & Postos da Gira</h2>
+                        <p class="text-slate-500 text-sm mt-1">Defina cargos fixos para todas as giras ou escale funções para uma gira específica. Pode escrever qualquer cargo livremente.</p>
+                    </div>
+
+                    <form onsubmit="salvarPostoGira(event)" class="bg-purple-50/50 p-6 rounded-2xl border border-purple-200 mb-8 space-y-4">
+                        <h3 class="text-sm font-bold text-purple-950"><i class="fa-solid fa-user-check mr-2 text-purple-600"></i>Atribuir Cargo ou Escalar Função</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <div class="md:col-span-4">
+                                <label class="label-grande">Onde Aplicar:</label>
+                                <select id="escala-gira-id" required class="input-grande bg-white cursor-pointer"></select>
+                            </div>
+                            <div class="md:col-span-4">
+                                <label class="label-grande">Escolher Filho:</label>
+                                <select id="escala-filho-id" required class="input-grande bg-white cursor-pointer"></select>
+                            </div>
+                            <div class="md:col-span-4">
+                                <label class="label-grande">Cargo / Posto (Digite ou escolha):</label>
+                                <input list="lista-cargos-umbanda" id="escala-funcao" required class="input-grande bg-white" placeholder="Escreva o cargo ou função...">
+                                <datalist id="lista-cargos-umbanda">
+                                    <option value="Pai Pequeno">
+                                    <option value="Mãe Pequena">
+                                    <option value="Ogã">
+                                    <option value="Curimba / Atabaque">
+                                    <option value="Cambono(a) Chefe">
+                                    <option value="Cambono(a)">
+                                    <option value="Porteira">
+                                    <option value="Defumação">
+                                    <option value="Cozinha / Café">
+                                    <option value="Recepção / Assistência">
+                                    <option value="Zeladoria / Congá">
+                                    <option value="Apoio Geral">
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <div class="md:col-span-9">
+                                <label class="label-grande">Descrição do que vai fazer / Com quem vai trabalhar (Opcional):</label>
+                                <input type="text" id="escala-detalhe" placeholder="Ex: Cambonar Médium Maria | Ficar na entrada principal | Responsável pelas velas e firmezas" class="input-grande bg-white">
+                            </div>
+                            <div class="md:col-span-3">
+                                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition h-[46px] shadow-sm">
+                                    Salvar Cargo/Posto
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="lista-escalas-gira-admin" class="space-y-6"></div>
                 </div>
 
                 <!-- AVISO -->
@@ -312,17 +442,39 @@
                     <div id="lista-grupos-faxina" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                 </div>
 
-                <!-- MENSALIDADES & FILHOS -->
+                <!-- MENSALIDADES, FILHOS, COMPROVANTES & ANIVERSARIANTES -->
                 <div id="form-mensalidade" class="hidden">
                     <div class="mb-8 border-b border-slate-100 pb-5">
                         <h2 class="text-2xl font-black text-slate-800 flex items-center"><i class="fa-solid fa-users text-emerald-500 mr-3"></i> Gestão de Filhos e Mensalidades</h2>
                     </div>
+
+                    <!-- RADAR DE ANIVERSARIANTES NO ADMIN -->
+                    <div class="bg-pink-50/40 border border-pink-200/80 rounded-2xl p-6 mb-8">
+                        <h3 class="text-sm font-extrabold text-pink-950 uppercase tracking-wider flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-cake-candles text-pink-600"></i> Radar de Celebrações deste Mês
+                        </h3>
+                        <div id="admin-radar-aniversariantes" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    </div>
+
+                    <!-- CAIXA DE ENTRADA DE COMPROVANTES ENVIADOS PELOS FILHOS -->
+                    <div class="bg-teal-50/60 border border-teal-200 rounded-2xl p-6 mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-extrabold text-teal-950 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-receipt text-teal-600"></i> Comprovantes Pendentes de Baixa
+                            </h3>
+                            <span class="text-xs font-bold text-teal-700">Dê baixa na ficha e apague o comprovante</span>
+                        </div>
+                        <div id="lista-comprovantes-admin" class="space-y-3"></div>
+                    </div>
+
+                    <!-- REGISTAR NOVO INTEGRANTE -->
                     <form onsubmit="adicionarFilho(event)" class="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
                         <h3 class="text-sm font-bold text-slate-700 mb-4"><i class="fa-solid fa-user-plus mr-2"></i>Registar Novo Integrante</h3>
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                            <div class="md:col-span-5"><label class="label-grande">Nome Completo:</label><input type="text" id="novo-filho-nome" required class="input-grande bg-white"></div>
-                            <div class="md:col-span-3"><label class="label-grande">Data de Ingresso:</label><input type="date" id="novo-filho-data" required class="input-grande bg-white"></div>
-                            <div class="md:col-span-2"><label class="label-grande">Senha (3 Díg.):</label><input type="text" id="novo-filho-senha" maxlength="3" required placeholder="123" class="input-grande bg-white text-center font-mono"></div>
+                            <div class="md:col-span-4"><label class="label-grande">Nome Completo:</label><input type="text" id="novo-filho-nome" required class="input-grande bg-white"></div>
+                            <div class="md:col-span-3"><label class="label-grande">Data de Nascimento:</label><input type="date" id="novo-filho-nascimento" class="input-grande bg-white"></div>
+                            <div class="md:col-span-2"><label class="label-grande">Ingresso Terreiro:</label><input type="date" id="novo-filho-data" required class="input-grande bg-white"></div>
+                            <div class="md:col-span-1"><label class="label-grande">Senha:</label><input type="text" id="novo-filho-senha" maxlength="3" required placeholder="123" class="input-grande bg-white text-center font-mono px-2"></div>
                             <div class="md:col-span-2">
                                 <label class="label-grande">É Admin?</label>
                                 <div class="flex items-center h-[46px] bg-white border border-slate-200 rounded-xl px-3">
@@ -382,10 +534,26 @@
             <div class="bg-slate-900 text-white px-8 py-6 flex justify-between items-center">
                 <div>
                     <h2 class="text-2xl font-black capitalize" id="ficha-nome">Nome do Filho</h2>
-                    <p class="text-slate-400 text-xs mt-1 font-medium uppercase tracking-wider">Gestão Individual de Contribuições</p>
+                    <p class="text-slate-400 text-xs mt-1 font-medium uppercase tracking-wider">Gestão Individual de Contribuições & Datas</p>
                 </div>
                 <button onclick="fecharFicha()" class="text-slate-400 hover:text-white transition w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-800"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
+
+            <!-- BARRA PARA ATUALIZAR ANIVERSÁRIO E DATA DE INGRESSO -->
+            <div class="px-8 py-4 bg-slate-100 border-b border-slate-200 flex flex-wrap items-end gap-4">
+                <div class="flex-1 min-w-[160px]">
+                    <label class="text-[10px] font-extrabold text-slate-500 uppercase block mb-1"><i class="fa-solid fa-cake-candles text-pink-500 mr-1"></i> Data de Nascimento</label>
+                    <input type="date" id="edit-filho-nascimento" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800">
+                </div>
+                <div class="flex-1 min-w-[160px]">
+                    <label class="text-[10px] font-extrabold text-slate-500 uppercase block mb-1"><i class="fa-solid fa-hands-praying text-amber-600 mr-1"></i> Ingresso no Terreiro</label>
+                    <input type="date" id="edit-filho-entrada" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800">
+                </div>
+                <button onclick="salvarDatasFilho()" type="button" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm h-[34px]">
+                    Salvar Datas
+                </button>
+            </div>
+
             <div class="p-6 bg-slate-50 border-b border-slate-200">
                 <div class="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <div><p class="text-xs font-bold text-slate-400 uppercase mb-1">Saldo Devedor</p><p class="text-3xl font-black text-red-600" id="ficha-divida-valor">R$ 0,00</p></div>
@@ -415,6 +583,22 @@
                     <div id="ficha-lista-meses" class="space-y-2 max-h-[350px] overflow-y-auto custom-scroll pr-2"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER A FOTO / PDF DO COMPROVANTE NA TELA -->
+    <div id="modal-comprovante" class="hidden fixed inset-0 modal-bg z-[60] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h3 class="font-extrabold text-base capitalize" id="modal-comp-titulo">Comprovante</h3>
+                    <p class="text-xs text-teal-400 font-semibold" id="modal-comp-subtitulo"></p>
+                </div>
+                <button onclick="fecharModalComprovante()" class="text-slate-400 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-800">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="modal-comp-corpo" class="p-6 overflow-y-auto custom-scroll flex-grow bg-slate-100 flex items-center justify-center min-h-[300px]"></div>
         </div>
     </div>
 

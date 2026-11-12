@@ -1,25 +1,30 @@
 import { supabase, dataHoje, state } from './config.js';
 import { realizarLogin, realizarLogout, verificarSessao, mostrarEcra } from './auth.js';
-import { atualizarResumoGira, salvarGira, carregarGiras, salvarAviso } from './girasAvisos.js';
+import { 
+    atualizarResumoGira, salvarGira, carregarGiras, salvarAviso,
+    carregarEscalaGiraAdmin, salvarPostoGira, removerPostoGira, carregarEscalaGiraFilho
+} from './girasAvisos.js';
 import { carregarFaxinaAdmin, criarGrupoFaxina, atualizarAgendaGrupo, moverFilhoGrupo, removerFilhoDoGrupo } from './faxina.js';
 import { 
-    adicionarFilho, carregarMensalidades, abrirFicha, adiantarMensalidade, alterarPagamentoNaFicha, 
+    adicionarFilho, salvarDatasFilho, carregarMensalidades, abrirFicha, adiantarMensalidade, alterarPagamentoNaFicha, 
     adicionarDebitoExtra, pagarDebitoExtra, fecharFicha, carregarCaixa, 
-    adicionarMovimentacaoCaixa, carregarListaGeral 
+    adicionarMovimentacaoCaixa, carregarListaGeral,
+    verComprovanteModal, fecharModalComprovante, apagarComprovante
 } from './financeiro.js';
-import { carregarPainelDoFilho } from './painelFilho.js';
+import { carregarPainelDoFilho, copiarChavePix, enviarComprovanteSupabase, enviarComprovanteWhatsApp } from './painelFilho.js';
 
 if(document.getElementById('novo-filho-data')) document.getElementById('novo-filho-data').value = dataHoje;
 if(document.getElementById('gira-data')) document.getElementById('gira-data').value = dataHoje;
 if(document.getElementById('faxina-data')) document.getElementById('faxina-data').value = dataHoje;
 
 window.abrirAba = function(abaId) {
-    const paineis = ['aba-bem-vindo', 'form-gira', 'form-aviso', 'form-faxina', 'form-mensalidade', 'form-financeiro', 'lista-geral'];
+    const paineis = ['aba-bem-vindo', 'form-gira', 'form-escala-gira', 'form-aviso', 'form-faxina', 'form-mensalidade', 'form-financeiro', 'lista-geral'];
     paineis.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); });
     const aba = document.getElementById(abaId);
     if(aba) aba.classList.remove('hidden');
     
     if(abaId === 'form-gira') carregarGiras();
+    if(abaId === 'form-escala-gira') carregarEscalaGiraAdmin();
     if(abaId === 'form-faxina') carregarFaxinaAdmin();
     if(abaId === 'form-mensalidade') carregarMensalidades();
     if(abaId === 'form-financeiro') carregarCaixa();
@@ -62,20 +67,18 @@ window.pedirPermissaoNotificacao = async function() {
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
         if (btnNotif) btnNotif.classList.add('hidden');
-        dispararNotificacaoNativa("Alertas Ativados!", "Você será avisado sempre que a direção publicar um novo comunicado ou gira.");
+        dispararNotificacaoNativa("Alertas Ativados!", "Você será avisado sempre que houver novidades no portal.");
     }
 };
 
 export async function dispararNotificacaoNativa(titulo, corpo) {
-    // 1. Mostra um Toast flutuante bonito dentro do app
-    mostrarToast(titulo, corpo);
+    window.mostrarToast(titulo, corpo);
 
-    // 2. Dispara a notificação nativa na barra do telemóvel / Windows
     if ('Notification' in window && Notification.permission === 'granted') {
         const opcoes = {
             body: corpo,
-            icon: 'https://ui-avatars.com/api/?name=VO&background=e03131&color=fff&size=192&rounded=true&bold=true&format=png',
-            badge: 'https://ui-avatars.com/api/?name=VO&background=e03131&color=fff&size=192&rounded=true&bold=true&format=png',
+            icon: '/src/logo.svg',
+            badge: '/src/logo.svg',
             vibrate: [200, 100, 200]
         };
 
@@ -90,25 +93,25 @@ export async function dispararNotificacaoNativa(titulo, corpo) {
     }
 }
 
-function mostrarToast(titulo, mensagem) {
+window.mostrarToast = function(titulo, mensagem) {
     const container = document.getElementById('toast-container');
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = 'toast-anim bg-slate-900 text-white p-4 rounded-2xl shadow-xl border border-slate-700 max-w-sm flex items-start gap-3';
     toast.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center shrink-0 mt-0.5">
-            <i class="fa-solid fa-bell text-xs"></i>
+        <div class="w-8 h-8 rounded-full bg-teal-500 text-slate-950 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid fa-check text-xs"></i>
         </div>
         <div>
-            <h4 class="font-extrabold text-xs uppercase tracking-wider text-red-400">${titulo}</h4>
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-teal-400">${titulo}</h4>
             <p class="text-xs text-slate-200 mt-0.5 font-medium">${mensagem}</p>
         </div>
     `;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 6000);
-}
+};
 
-// Escuta novos Avisos e Giras em Tempo Real via Supabase
+// Escuta novos Avisos, Giras, Comprovantes e Escalas de Gira em Tempo Real
 supabase.channel('notificacoes-terreiro')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'avisos' }, (payload) => {
         const novo = payload.new;
@@ -120,6 +123,23 @@ supabase.channel('notificacoes-terreiro')
         const dataBr = novaGira.data.split('-').reverse().join('/');
         dispararNotificacaoNativa(`📅 Nova Gira Agendada!`, `${novaGira.linha_trabalho} dia ${dataBr} às ${novaGira.horario_abertura.substring(0,5)}h`);
         carregarGiras();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comprovantes' }, (payload) => {
+        const comp = payload.new;
+        if (state.usuarioLogado && state.usuarioLogado.is_admin) {
+            dispararNotificacaoNativa(`💸 Novo Comprovante!`, `${comp.filho_nome} enviou um comprovante (${comp.observacao}).`);
+            carregarMensalidades();
+        }
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'escala_gira' }, (payload) => {
+        const esc = payload.new;
+        if (state.usuarioLogado && state.usuarioLogado.id === esc.filho_id) {
+            dispararNotificacaoNativa(`🌟 Você foi Escalado(a)!`, `Sua função na gira: ${esc.funcao} ${esc.detalhe ? `(${esc.detalhe})` : ''}`);
+        }
+        if (state.usuarioLogado && !state.usuarioLogado.is_admin) {
+            carregarEscalaGiraFilho();
+            carregarGiras();
+        }
     })
     .subscribe();
 
@@ -157,9 +177,12 @@ window.addEventListener('appinstalled', () => {
 Object.assign(window, {
     mostrarEcra, realizarLogin, realizarLogout,
     atualizarResumoGira, salvarGira, salvarAviso,
+    salvarPostoGira, removerPostoGira,
     criarGrupoFaxina, atualizarAgendaGrupo, moverFilhoGrupo, removerFilhoDoGrupo,
-    adicionarFilho, abrirFicha, adiantarMensalidade, alterarPagamentoNaFicha, 
-    adicionarDebitoExtra, pagarDebitoExtra, fecharFicha, adicionarMovimentacaoCaixa
+    adicionarFilho, salvarDatasFilho, abrirFicha, adiantarMensalidade, alterarPagamentoNaFicha, 
+    adicionarDebitoExtra, pagarDebitoExtra, fecharFicha, adicionarMovimentacaoCaixa,
+    copiarChavePix, enviarComprovanteSupabase, enviarComprovanteWhatsApp,
+    verComprovanteModal, fecharModalComprovante, apagarComprovante
 });
 
 verificarBotaoNotificacao();
