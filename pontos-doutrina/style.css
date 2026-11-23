@@ -1,0 +1,232 @@
+/* =========================================================================
+   ESTILOS EXCLUSIVOS: CADERNO DE PONTOS & DOUTRINA (pontos-doutrina/style.css)
+   Paleta: Iansã (#8E2638) | Iemanjá (#A9D8E8) | Linho (#F5F0E8)
+   ========================================================================= */
+
+/* --- HERO BANNER EDITORIAL --- */
+.painel-hero-oya {
+    background: linear-gradient(145deg, #8E2638 0%, #681927 62%, #3d121b 100%);
+    box-shadow: 
+        0 22px 48px -12px rgba(142, 38, 56, 0.28),
+        0 8px 20px -6px rgba(169, 216, 232, 0.35);
+}
+
+.reflexo-hero-iemanja {
+    position: absolute;
+    bottom: -35%;
+    right: -10%;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(169, 216, 232, 0.26) 0%, transparent 70%);
+    filter: blur(28px);
+}
+
+.ornamento-hero-oya {
+    position: absolute;
+    top: -90px;
+    right: -90px;
+    width: 380px;
+    height: 380px;
+    animation: giroHeroSuave 75s linear infinite;
+}
+
+@keyframes giroHeroSuave {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- PÍLULAS DE NAVEGAÇÃO --- */
+.nav-pilula-ativa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #A9D8E8;
+    color: #52121d;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.65rem 1.15rem;
+    border-radius: 0.875rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+    transition: all 0.2s ease;
+}
+
+.nav-pilula-inativa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(245, 240, 232, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.65rem 1.15rem;
+    border-radius: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.nav-pilula-inativa:hover {
+    background-color: rgba(169, 216, 232, 0.18);
+    color: #ffffff;
+    border-color: rgba(169, 216, 232, 0.45);
+    transform: translateY(-1px);
+}
+
+/* --- DETALHES DOS CARDS E ÍCONES EDITORIAIS --- */
+.barra-topo-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.icone-editorial-grena {
+    width: 2.65rem;
+    height: 2.65rem;
+    border-radius: 0.875rem;
+    background-color: rgba(142, 38, 56, 0.08);
+    color: #8E2638;
+    border: 1px solid rgba(142, 38, 56, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* --- BOTÃO PRINCIPAL DE AÇÃO (OYÁ GRENÁ) --- */
+.btn-oya-acao {
+    background-color: #8E2638;
+    color: #ffffff;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: 0 10px 24px -6px rgba(142, 38, 56, 0.4);
+}
+
+.btn-oya-acao:hover {
+    background-color: #681927;
+    box-shadow: 0 14px 28px -6px rgba(142, 38, 56, 0.55);
+    transform: translateY(-1px);
+}
+
+/* --- BOTÕES DE FILTRO POR TIPO (PONTOS / REZAS / REGRAS) --- */
+.filtro-doutrina-ativo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #8E2638;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.55rem 1.1rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(142, 38, 56, 0.25);
+    transition: all 0.2s ease;
+}
+
+.filtro-doutrina-inativo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #F5F0E8;
+    color: #334155;
+    border: 1px solid rgba(142, 38, 56, 0.16);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.55rem 1.1rem;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+}
+
+.filtro-doutrina-inativo:hover {
+    background-color: #ffffff;
+    border-color: #8E2638;
+    color: #8E2638;
+}
+
+/* --- CARTÕES DO CADERNO DE PONTOS E DOUTRINA --- */
+.card-doutrina-editorial {
+    background-color: #ffffff;
+    border: 1px solid rgba(142, 38, 56, 0.14);
+    border-radius: 1.35rem;
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.22s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-doutrina-editorial:hover {
+    border-color: rgba(142, 38, 56, 0.35);
+    box-shadow: 0 12px 28px -8px rgba(142, 38, 56, 0.12);
+    transform: translateY(-2px);
+}
+
+.bloco-letra-ponto {
+    background-color: rgba(245, 240, 232, 0.7);
+    border: 1px solid rgba(142, 38, 56, 0.12);
+    border-left: 3.5px solid #8E2638;
+    border-radius: 0.875rem;
+    padding: 1rem 1.15rem;
+    font-size: 0.84rem;
+    line-height: 1.65;
+    color: #1e293b;
+    white-space: pre-line;
+    font-weight: 600;
+}
+
+/* =========================================================================
+   AJUSTES FINOS PARA MOBILE (IPHONE / ANDROID)
+   ========================================================================= */
+@media (max-width: 768px) {
+    main {
+        padding-top: 1.25rem !important;
+        padding-bottom: 2rem !important;
+        gap: 1.25rem !important;
+    }
+
+    .painel-hero-oya {
+        border-radius: 1.5rem !important;
+        padding: 1.35rem 1.25rem !important;
+    }
+
+    .painel-hero-oya h2 {
+        font-size: 1.55rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .ornamento-hero-oya {
+        width: 240px;
+        height: 240px;
+        top: -60px;
+        right: -60px;
+        opacity: 0.5;
+    }
+
+    .painel-hero-oya nav {
+        padding-top: 1rem !important;
+        margin-left: -0.25rem;
+        margin-right: -0.25rem;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        scrollbar-width: none;
+    }
+
+    .painel-hero-oya nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-pilula-ativa,
+    .nav-pilula-inativa {
+        padding: 0.55rem 0.95rem;
+        font-size: 0.72rem;
+    }
+
+    .pro-card {
+        border-radius: 1.35rem !important;
+        padding: 1.25rem !important;
+    }
+}

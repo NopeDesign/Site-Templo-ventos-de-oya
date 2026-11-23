@@ -1,0 +1,86 @@
+📁 ventos-de-oya/
+│
+├── 📄 index.html                  (Tela de Login) x
+├── 📄 style.css                   (CSS apenas do Login) x
+├── 📄 script.js                   (JS apenas do Login) x
+├── 📄 manifest.json               (Configuração PWA) x
+├── 📄 sw.js                       (Service Worker) x
+│
+├── 📁 shared/                     (Arquivos base compartilhados por todas as pastas) x
+│   ├── 📄 config.js               (Conexão Supabase e estado do usuário) x
+│   ├── 📄 global.css              (Fonte e estilos padrão dos cards/botões) x
+│   └── 🖼️ logo.svg                (Logo do terreiro) x
+│
+├── 📁 painel-filho/               (Tela Inicial do Filho: Resumo, Avisos, Giras e PIX) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 agendar-gira/               (Agendar Gira, Lista de Presença e Criar Avisos) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│ 
+├── 📁 cargos-postos/              (Cargos Fixos da Casa e Escala da Gira) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 ponto-irradiacao/           (Caixa de Pedidos de Oração - Visão Filho e Admin) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 festas-listas/              (Lista Colaborativa "Quem Leva o Quê" - Filho e Admin) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 ervas-banhos/               (Guia Interativo de Ervas e Banhos - Filho e Admin) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 doacoes/                    (Central de Doações, PIX e Campanhas - Filho e Admin) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 pontos-doutrina/            (Caderno de Pontos, Áudios e Regras - Filho e Admin) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 escala-faxina/              (Gestão de Grupos e Datas de Limpeza) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 filhos-mensalidades/        (Cadastro de Filhos, Comprovantes e Ficha Financeira) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
+│
+├── 📁 fichas-cadastrais/          (Ficha Oficial com Ori, Saúde e Assinatura no Canvas)
+│   ├── 📄 index.html
+│   ├── 📄 style.css
+│   └── 📄 script.js
+│
+└── 📁 caixa-financeiro/           (Fluxo de Caixa Entradas/Saídas e Base de Dados)
+    ├── 📄 index.html
+    ├── 📄 style.css
+    └── 📄 script.js
+
+
+
+
+
+
+
+
+
+cores site
+
+#8E2638
+#A9D8E8
+#F5F0E8

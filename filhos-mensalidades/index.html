@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Filhos & Mensalidades | Templo de Umbanda Ventos de Oyá</title>
+    
+    <!-- CONFIGURAÇÃO PWA -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#8E2638">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ventos de Oyá">
+    <link rel="icon" type="image/png" href="../shared/logo.png">
+    <link rel="apple-touch-icon" href="../shared/logo.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS GLOBAL COMPARTILHADO E CSS EXCLUSIVO DESTE MÓDULO -->
+    <link rel="stylesheet" href="../shared/global.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- TEXTURA DE LINHO ARTESANAL SOBRE O FUNDO #F5F0E8 -->
+    <div class="textura-linho pointer-events-none" aria-hidden="true"></div>
+
+    <!-- ATMOSFERA SUTIL DE FUNDO (TRAÇOS DE VENTO DE OYÁ E ÁGUAS DE IEMANJÁ) -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden no-print" aria-hidden="true">
+        <svg class="w-full h-72 opacity-60" viewBox="0 0 1440 320" fill="none" preserveAspectRatio="none">
+            <path d="M-100,110 C340,20 720,210 1180,80 C1340,35 1460,90 1600,70" stroke="#8E2638" stroke-width="1.2" stroke-opacity="0.10"/>
+            <path d="M-100,170 C280,260 760,40 1200,160 C1380,210 1480,140 1600,160" stroke="#A9D8E8" stroke-width="2" stroke-opacity="0.40"/>
+        </svg>
+    </div>
+
+    <!-- CONTENTOR DE NOTIFICAÇÕES (TOASTS) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print"></div>
+
+    <!-- HEADER EDITORIAL ADMINISTRATIVO -->
+    <header class="w-full sticky top-0 z-40 border-b border-[#8E2638]/12 bg-[#F5F0E8]/85 backdrop-blur-md no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Identidade da Casa -->
+                <div class="flex items-center gap-3.5">
+                    <div class="p-0.5 rounded-full bg-gradient-to-tr from-[#8E2638] to-[#A9D8E8] shadow-sm">
+                        <img src="../shared/logo.png" alt="Templo de Umbanda Ventos de Oyá" class="w-11 h-11 object-contain rounded-full bg-white p-0.5">
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#8E2638] block leading-none">Direção Espiritual</span>
+                        <h1 class="text-lg font-extrabold text-slate-900 tracking-tight leading-tight mt-1">Ventos de Oyá</h1>
+                    </div>
+                </div>
+
+                <!-- Ações Globais da Direção -->
+                <div class="flex items-center gap-2.5">
+                    <a href="../painel-filho/index.html" class="bg-white hover:bg-[#A9D8E8]/30 text-slate-700 border border-[#8E2638]/20 text-xs font-bold px-3.5 py-2 rounded-full transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-regular fa-eye text-[#8E2638]"></i>
+                        <span class="hidden sm:inline">Visão do Filho</span>
+                    </a>
+
+                    <button onclick="realizarLogout()" id="btn-logout-header" class="btn-editorial-outline flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                        <span class="hidden sm:inline">Encerrar Sessão</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL DO MÓDULO -->
+    <main id="admin-dashboard-view" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 relative z-10 no-print">
+        
+        <!-- HERO BANNER DA DIREÇÃO & MENU MODULAR ENTRE PASTAS -->
+        <section class="painel-hero-oya rounded-[2rem] text-[#F5F0E8] p-6 sm:p-10 shadow-xl relative overflow-hidden border border-[#8E2638]/30">
+            
+            <div class="reflexo-hero-iemanja pointer-events-none" aria-hidden="true"></div>
+            <svg class="ornamento-hero-oya pointer-events-none" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+                <circle cx="200" cy="200" r="170" stroke="#A9D8E8" stroke-opacity="0.14" stroke-width="1" stroke-dasharray="6 6"/>
+                <circle cx="200" cy="200" r="125" stroke="#F5F0E8" stroke-opacity="0.08" stroke-width="1"/>
+            </svg>
+
+            <div class="relative z-10 flex flex-col gap-8">
+                
+                <!-- Título do Módulo -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] bg-white/10 text-[#A9D8E8] backdrop-blur-sm border border-[#A9D8E8]/25 mb-3">
+                            <i class="fa-solid fa-users text-[10px]"></i> Cadastro, Fichas &amp; Tesouraria
+                        </span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                            Gestão de Filhos &amp; Mensalidades
+                        </h2>
+                        <p class="text-[#F5F0E8]/80 text-xs sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
+                            Acompanhe os comprovantes PIX enviados pelos médiuns, valide as mensalidades na ficha financeira individual, consulte o radar de aniversariantes e registre novos integrantes na corrente.
+                        </p>
+                    </div>
+
+                    <div class="hidden lg:block text-right border-l border-white/15 pl-6 shrink-0">
+                        <span class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#A9D8E8] block">Painel Administrativo</span>
+                        <p class="text-xs font-semibold text-white/90 mt-0.5">Caboclo Pena Branca &amp; Mãe Benedita</p>
+                    </div>
+                </div>
+
+                <!-- BARRA DE NAVEGAÇÃO ENTRE TODAS AS PASTAS DO SISTEMA -->
+                <nav aria-label="Menu Administrativo" class="pt-5 border-t border-white/15 flex items-center gap-2 overflow-x-auto custom-scroll pb-1">
+                    <a href="../agendar-gira/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-regular fa-calendar-plus text-xs"></i>
+                        <span>Giras &amp; Avisos</span>
+                    </a>
+                    <a href="../ponto-irradiacao/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hands-praying text-xs"></i>
+                        <span>Irradiação</span>
+                        <span id="badge-oracao-admin" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                    </a>
+                    <a href="../cargos-postos/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-clipboard-user text-xs"></i>
+                        <span>Cargos &amp; Postos</span>
+                    </a>
+                    <a href="../festas-listas/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-gifts text-xs"></i>
+                        <span>Festas &amp; Listas</span>
+                    </a>
+                    <a href="../doacoes/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hand-holding-heart text-xs"></i>
+                        <span>Doações</span>
+                        <span id="badge-doacoes-admin" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                    </a>
+                    <a href="../ervas-banhos/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-leaf text-xs"></i>
+                        <span>Ervas &amp; Banhos</span>
+                    </a>
+                    <a href="../fichas-cadastrais/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-id-card-clip text-xs"></i>
+                        <span>Fichas Cadastrais</span>
+                    </a>
+                    <a href="../pontos-doutrina/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-book-open text-xs"></i>
+                        <span>Pontos &amp; Doutrina</span>
+                    </a>
+                    <a href="../escala-faxina/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-broom text-xs"></i>
+                        <span>Escala de Faxina</span>
+                    </a>
+                    <a href="../filhos-mensalidades/index.html" class="nav-pilula-ativa shrink-0">
+                        <i class="fa-solid fa-users text-xs"></i>
+                        <span>Filhos &amp; Mensalidades</span>
+                        <span id="badge-comprovantes-menu" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                    </a>
+                    <a href="../caixa-financeiro/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-wallet text-xs"></i>
+                        <span>Caixa &amp; Dados</span>
+                    </a>
+                </nav>
+
+            </div>
+        </section>
+
+        <!-- SECÇÃO 1: RADAR DE CELEBRAÇÕES (ANIVERSÁRIOS DE VIDA E TEMPO DE TERREIRO) -->
+        <section class="pro-card p-6 sm:p-8 relative overflow-hidden">
+            <div class="barra-topo-card bg-[#A9D8E8]"></div>
+            <div class="flex items-center gap-3.5 mb-6 border-b border-[#8E2638]/10 pb-5">
+                <div class="icone-editorial-azul">
+                    <i class="fa-solid fa-cake-candles text-base"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#2b677a] block">Fraternidade da Casa</span>
+                    <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Radar de Celebrações deste Mês</h3>
+                </div>
+            </div>
+            <div id="admin-radar-aniversariantes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="text-center py-6 text-slate-400 col-span-2"><div class="loader"></div></div>
+            </div>
+        </section>
+
+        <!-- SECÇÃO 2: CAIXA DE ENTRADA DE COMPROVANTES DOS FILHOS -->
+        <section class="pro-card p-6 sm:p-8 relative overflow-hidden">
+            <div class="barra-topo-card bg-[#8E2638]"></div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-[#8E2638]/10 pb-5">
+                <div class="flex items-center gap-3.5">
+                    <div class="icone-editorial-grena">
+                        <i class="fa-solid fa-receipt text-base"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Validação da Tesouraria</span>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Comprovantes Pendentes de Baixa</h3>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-[#8E2638] bg-[#8E2638]/10 border border-[#8E2638]/20 px-3.5 py-1.5 rounded-full w-fit">
+                    <i class="fa-solid fa-bolt mr-1"></i> Dê baixa na ficha financeira e remova o comprovante
+                </span>
+            </div>
+            <div id="lista-comprovantes-admin" class="space-y-3">
+                <div class="text-center py-6 text-slate-400"><div class="loader"></div></div>
+            </div>
+        </section>
+
+        <!-- SECÇÃO 3: REGISTAR NOVO INTEGRANTE NA CORRENTE -->
+        <section class="pro-card p-6 sm:p-8 relative overflow-hidden">
+            <div class="barra-topo-card bg-gradient-to-r from-[#8E2638] via-[#A9D8E8] to-[#8E2638]"></div>
+            <div class="flex items-center gap-3.5 mb-6 border-b border-[#8E2638]/10 pb-5">
+                <div class="icone-editorial-grena">
+                    <i class="fa-solid fa-user-plus text-base"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Inclusão na Corrente</span>
+                    <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Registar Novo Integrante</h3>
+                </div>
+            </div>
+
+            <form onsubmit="adicionarFilho(event)" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div class="md:col-span-4">
+                        <label for="novo-filho-nome" class="label-grande">Nome Completo:</label>
+                        <input type="text" id="novo-filho-nome" required placeholder="Ex: Geovanna Silva" class="input-grande">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label for="novo-filho-nascimento" class="label-grande">Data de Nascimento:</label>
+                        <input type="date" id="novo-filho-nascimento" class="input-grande">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="novo-filho-data" class="label-grande">Ingresso no Terreiro:</label>
+                        <input type="date" id="novo-filho-data" required class="input-grande">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="novo-filho-senha" class="label-grande">Senha (3 CPF):</label>
+                        <input type="text" id="novo-filho-senha" maxlength="3" required placeholder="123" class="input-grande text-center font-mono">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="label-grande">Direção / Admin?</label>
+                        <div class="flex items-center h-[46px] bg-[#F5F0E8] border border-[#8E2638]/20 rounded-xl px-3.5">
+                            <input type="checkbox" id="novo-filho-admin" class="w-5 h-5 text-[#8E2638] cursor-pointer rounded">
+                            <span class="ml-2.5 text-xs text-slate-700 font-extrabold">Sim (Admin)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full btn-oya-acao font-extrabold py-4 px-5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-check"></i>
+                        <span>Adicionar Filho à Corrente</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SECÇÃO 4: CORRENTE ATIVA (FICHAS) -->
+        <section class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Médiuns &amp; Frequentadores</span>
+                    <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Corrente Ativa &amp; Fichas Cadastrais</h3>
+                </div>
+                <span class="text-xs font-bold text-slate-500 bg-[#F5F0E8] border border-[#8E2638]/15 px-3.5 py-1.5 rounded-full w-fit">
+                    <i class="fa-regular fa-folder-open text-[#8E2638] mr-1"></i> Clique em "Abrir Ficha Financeira" para gerir mensalidades e débitos
+                </span>
+            </div>
+
+            <div id="lista-filhos-limpa" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <div class="pro-card p-12 text-center text-slate-400 col-span-2">
+                    <div class="loader mb-3"></div><br>A carregar fichas da corrente...
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- RODAPÉ EDITORIAL -->
+    <footer class="w-full py-6 text-center text-xs text-slate-500 border-t border-[#8E2638]/10 bg-[#F5F0E8]/60 relative z-10 no-print">
+        <p class="font-semibold text-slate-600/80">Templo de Umbanda Ventos de Oyá &bull; Painel Administrativo</p>
+    </footer>
+
+    <!-- MODAL FICHA FINANCEIRA (ADMIN) -->
+    <div id="modal-ficha" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-[#8E2638]/20">
+            
+            <!-- TOPO DO MODAL -->
+            <div class="painel-hero-oya text-white px-8 py-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-black capitalize" id="ficha-nome">Nome do Filho</h2>
+                    <p class="text-[#A9D8E8] text-xs mt-1 font-bold uppercase tracking-wider">Gestão Individual de Contribuições &amp; Datas</p>
+                </div>
+                <button onclick="fecharFicha()" type="button" class="text-white/70 hover:text-white transition w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- BARRA PARA ATUALIZAR ANIVERSÁRIO E DATA DE INGRESSO -->
+            <div class="px-8 py-4 bg-[#F5F0E8] border-b border-[#8E2638]/15 flex flex-wrap items-end gap-4">
+                <div class="flex-1 min-w-[160px]">
+                    <label for="edit-filho-nascimento" class="text-[10px] font-extrabold text-[#8E2638] uppercase block mb-1">
+                        <i class="fa-solid fa-cake-candles text-pink-600 mr-1"></i> Data de Nascimento
+                    </label>
+                    <input type="date" id="edit-filho-nascimento" class="w-full bg-white border border-[#8E2638]/20 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800">
+                </div>
+                <div class="flex-1 min-w-[160px]">
+                    <label for="edit-filho-entrada" class="text-[10px] font-extrabold text-[#8E2638] uppercase block mb-1">
+                        <i class="fa-solid fa-hands-praying text-[#2b677a] mr-1"></i> Ingresso no Terreiro
+                    </label>
+                    <input type="date" id="edit-filho-entrada" class="w-full bg-white border border-[#8E2638]/20 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800">
+                </div>
+                <button onclick="salvarDatasFilho()" type="button" class="bg-[#8E2638] hover:bg-[#681927] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm h-[38px]">
+                    Salvar Datas
+                </button>
+            </div>
+
+            <!-- SALDO DEVEDOR -->
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <div class="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-1">Saldo Devedor</p>
+                        <p class="text-3xl font-black text-[#8E2638]" id="ficha-divida-valor">R$ 0,00</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-1">Pendências</p>
+                        <p class="text-base font-bold text-slate-700">
+                            <span id="ficha-divida-meses">0</span> Mensalidades &bull; <span id="ficha-divida-extras">0</span> Extras
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CORPO DO MODAL (LANÇAR EXTRATIVOS + CONTROLO DE MÊSES) -->
+            <div class="p-8 overflow-y-auto custom-scroll flex-grow bg-white grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xs font-extrabold text-[#8E2638] uppercase tracking-wider mb-4">Lançar Consumo / Extra</h3>
+                    <form onsubmit="adicionarDebitoExtra(event)" class="bg-[#F5F0E8]/60 p-5 rounded-2xl border border-[#8E2638]/15 mb-6 space-y-3">
+                        <div>
+                            <label for="extra-desc" class="text-xs font-bold text-slate-700 block mb-1">Descrição do Item</label>
+                            <input type="text" id="extra-desc" required placeholder="Ex: Velas / Uniforme / Guia..." class="input-grande bg-white py-2 text-sm">
+                        </div>
+                        <div class="flex gap-3 items-end">
+                            <div class="w-2/3">
+                                <label for="extra-valor" class="text-xs font-bold text-slate-700 block mb-1">Valor (R$)</label>
+                                <input type="number" id="extra-valor" step="0.01" min="0.01" required placeholder="Ex: 25,00" class="input-grande bg-white py-2 text-sm">
+                            </div>
+                            <button type="submit" class="w-1/3 bg-slate-900 hover:bg-[#8E2638] text-white font-bold py-2.5 rounded-xl text-xs transition h-[42px]">
+                                Lançar
+                            </button>
+                        </div>
+                    </form>
+                    <h4 class="text-xs font-extrabold text-slate-700 uppercase mb-3">Histórico de Extras:</h4>
+                    <div id="ficha-lista-extras" class="space-y-2 max-h-[220px] overflow-y-auto custom-scroll pr-1"></div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-extrabold text-[#8E2638] uppercase tracking-wider">Controlo de Mensalidades</h3>
+                        <button onclick="adiantarMensalidade()" type="button" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold py-2 px-3.5 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-forward-fast text-[10px]"></i> Adiantar Mês
+                        </button>
+                    </div>
+                    <div id="ficha-lista-meses" class="space-y-2 max-h-[350px] overflow-y-auto custom-scroll pr-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER A FOTO / PDF DO COMPROVANTE NA TELA -->
+    <div id="modal-comprovante" class="hidden fixed inset-0 modal-bg z-[60] flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-[#8E2638]/20">
+            <div class="painel-hero-oya text-white px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h3 class="font-extrabold text-base capitalize" id="modal-comp-titulo">Comprovante</h3>
+                    <p class="text-xs text-[#A9D8E8] font-semibold" id="modal-comp-subtitulo"></p>
+                </div>
+                <button onclick="fecharModalComprovante()" type="button" class="text-white/70 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="modal-comp-corpo" class="p-6 overflow-y-auto custom-scroll flex-grow bg-[#F5F0E8] flex items-center justify-center min-h-[300px]"></div>
+        </div>
+    </div>
+
+    <!-- JS EXCLUSIVO DESTA PASTA -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

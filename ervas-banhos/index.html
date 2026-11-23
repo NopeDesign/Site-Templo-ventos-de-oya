@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Guia de Ervas & Banhos | Templo de Umbanda Ventos de Oyá</title>
+    
+    <!-- CONFIGURAÇÃO PWA -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#8E2638">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ventos de Oyá">
+    <link rel="icon" type="image/png" href="../shared/logo.png">
+    <link rel="apple-touch-icon" href="../shared/logo.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS GLOBAL COMPARTILHADO E CSS EXCLUSIVO DESTE MÓDULO -->
+    <link rel="stylesheet" href="../shared/global.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- TEXTURA DE LINHO ARTESANAL SOBRE O FUNDO #F5F0E8 -->
+    <div class="textura-linho pointer-events-none" aria-hidden="true"></div>
+
+    <!-- ATMOSFERA SUTIL DE FUNDO (TRAÇOS DE VENTO DE OYÁ E ÁGUAS DE IEMANJÁ) -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden no-print" aria-hidden="true">
+        <svg class="w-full h-72 opacity-60" viewBox="0 0 1440 320" fill="none" preserveAspectRatio="none">
+            <path d="M-100,110 C340,20 720,210 1180,80 C1340,35 1460,90 1600,70" stroke="#8E2638" stroke-width="1.2" stroke-opacity="0.10"/>
+            <path d="M-100,170 C280,260 760,40 1200,160 C1380,210 1480,140 1600,160" stroke="#A9D8E8" stroke-width="2" stroke-opacity="0.40"/>
+        </svg>
+    </div>
+
+    <!-- CONTENTOR DE NOTIFICAÇÕES (TOASTS) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print"></div>
+
+    <!-- HEADER EDITORIAL -->
+    <header class="w-full sticky top-0 z-40 border-b border-[#8E2638]/12 bg-[#F5F0E8]/85 backdrop-blur-md no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Identidade da Casa -->
+                <div class="flex items-center gap-3.5">
+                    <div class="p-0.5 rounded-full bg-gradient-to-tr from-[#8E2638] to-[#A9D8E8] shadow-sm">
+                        <img src="../shared/logo.png" alt="Templo de Umbanda Ventos de Oyá" class="w-11 h-11 object-contain rounded-full bg-white p-0.5">
+                    </div>
+                    <div>
+                        <span id="header-subtitulo-cargo" class="text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#8E2638] block leading-none">Portal da Corrente</span>
+                        <h1 class="text-lg font-extrabold text-slate-900 tracking-tight leading-tight mt-1">Ventos de Oyá</h1>
+                    </div>
+                </div>
+
+                <!-- Ações Globais e Alternador Admin/Filho -->
+                <div class="flex items-center gap-2.5">
+                    <button onclick="alternarModoVisaoErvas()" id="btn-alternar-visao" type="button" class="hidden bg-white hover:bg-[#A9D8E8]/30 text-slate-700 border border-[#8E2638]/20 text-xs font-bold px-3.5 py-2 rounded-full transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-repeat text-[#8E2638]"></i>
+                        <span id="label-alternar-visao" class="hidden sm:inline">Visão do Filho</span>
+                    </button>
+
+                    <button onclick="realizarLogout()" id="btn-logout-header" class="btn-editorial-outline flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                        <span class="hidden sm:inline">Encerrar Sessão</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 relative z-10">
+        
+        <!-- HERO BANNER EDITORIAL & NAVEGAÇÃO DINÂMICA (FILHO OU ADMIN) -->
+        <section class="painel-hero-oya rounded-[2rem] text-[#F5F0E8] p-6 sm:p-10 shadow-xl relative overflow-hidden border border-[#8E2638]/30 no-print">
+            
+            <div class="reflexo-hero-iemanja pointer-events-none" aria-hidden="true"></div>
+            <svg class="ornamento-hero-oya pointer-events-none" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+                <circle cx="200" cy="200" r="170" stroke="#A9D8E8" stroke-opacity="0.14" stroke-width="1" stroke-dasharray="6 6"/>
+                <circle cx="200" cy="200" r="125" stroke="#F5F0E8" stroke-opacity="0.08" stroke-width="1"/>
+            </svg>
+
+            <div class="relative z-10 flex flex-col gap-8">
+                
+                <!-- Título e Propósito -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] bg-white/10 text-[#A9D8E8] backdrop-blur-sm border border-[#A9D8E8]/25 mb-3">
+                            <i class="fa-solid fa-leaf text-[10px]"></i> Sabedoria Botânica &amp; Preceitos
+                        </span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                            Guia Interativo de Ervas &amp; Banhos
+                        </h2>
+                        <p class="text-[#F5F0E8]/80 text-xs sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
+                            Consulte as ervas sagradas por Orixá ou finalidade espiritual, verifique a classificação energética (Quente, Morna ou Fria), as regras de proteção da coroa e o modo correto de preparo.
+                        </p>
+                    </div>
+
+                    <div class="hidden lg:block text-right border-l border-white/15 pl-6 shrink-0">
+                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A9D8E8] block">Regência da Casa</span>
+                        <p class="text-xs font-semibold text-white/90 mt-0.5">Caboclo Pena Branca &amp; Mãe Benedita</p>
+                    </div>
+                </div>
+
+                <!-- BARRA DE NAVEGAÇÃO DO FILHO (EXIBIDA PARA MÉDIUNS) -->
+                <nav id="nav-barra-filho" aria-label="Navegação do Filho" class="hidden pt-5 border-t border-white/15 flex items-center gap-2 overflow-x-auto custom-scroll pb-1">
+                    <a href="../painel-filho/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-house text-xs"></i>
+                        <span>Meu Painel</span>
+                    </a>
+                    <a href="../ponto-irradiacao/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hands-praying text-xs"></i>
+                        <span>Ponto de Irradiação</span>
+                    </a>
+                    <a href="../festas-listas/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-gifts text-xs"></i>
+                        <span>Festas &amp; Listas</span>
+                        <span id="badge-festas-filho" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">!</span>
+                    </a>
+                    <a href="../ervas-banhos/index.html" class="nav-pilula-ativa shrink-0">
+                        <i class="fa-solid fa-leaf text-xs"></i>
+                        <span>Ervas &amp; Banhos</span>
+                    </a>
+                    <a href="../doacoes/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hand-holding-heart text-xs"></i>
+                        <span>Doações</span>
+                    </a>
+                    <a href="../pontos-doutrina/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-book-open text-xs"></i>
+                        <span>Pontos &amp; Doutrina</span>
+                    </a>
+                </nav>
+
+                <!-- BARRA DE NAVEGAÇÃO ADMINISTRATIVA (EXIBIDA PARA DIREÇÃO) -->
+                <nav id="nav-barra-admin" aria-label="Menu Administrativo" class="hidden pt-5 border-t border-white/15 flex items-center gap-2 overflow-x-auto custom-scroll pb-1">
+                    <a href="../agendar-gira/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-regular fa-calendar-plus text-xs"></i>
+                        <span>Giras &amp; Avisos</span>
+                    </a>
+                    <a href="../ponto-irradiacao/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hands-praying text-xs"></i>
+                        <span>Irradiação</span>
+                        <span id="badge-oracao-admin" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                    </a>
+                    <a href="../cargos-postos/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-clipboard-user text-xs"></i>
+                        <span>Cargos &amp; Postos</span>
+                    </a>
+                    <a href="../festas-listas/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-gifts text-xs"></i>
+                        <span>Festas &amp; Listas</span>
+                    </a>
+                    <a href="../doacoes/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hand-holding-heart text-xs"></i>
+                        <span>Doações</span>
+                        <span id="badge-doacoes-admin" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                    </a>
+                    <a href="../ervas-banhos/index.html" class="nav-pilula-ativa shrink-0">
+                        <i class="fa-solid fa-leaf text-xs"></i>
+                        <span>Ervas &amp; Banhos</span>
+                    </a>
+                    <a href="../fichas-cadastrais/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-id-card-clip text-xs"></i>
+                        <span>Fichas Cadastrais</span>
+                    </a>
+                    <a href="../pontos-doutrina/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-book-open text-xs"></i>
+                        <span>Pontos &amp; Doutrina</span>
+                    </a>
+                    <a href="../escala-faxina/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-broom text-xs"></i>
+                        <span>Escala de Faxina</span>
+                    </a>
+                    <a href="../filhos-mensalidades/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-users text-xs"></i>
+                        <span>Filhos &amp; Mensalidades</span>
+                        <span id="badge-comprovantes-menu" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">0</span>
+                    </a>
+                    <a href="../caixa-financeiro/index.html" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-wallet text-xs"></i>
+                        <span>Caixa &amp; Dados</span>
+                    </a>
+                </nav>
+
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             VISÃO DO FILHO: CONSULTA INTERATIVA DE ERVAS E BANHOS (#filho-aba-ervas)
+             ========================================================================= -->
+        <section id="filho-aba-ervas" class="hidden space-y-6">
+            <div class="pro-card p-6 sm:p-8 relative overflow-hidden space-y-6">
+                <div class="barra-topo-card bg-gradient-to-r from-[#8E2638] via-[#A9D8E8] to-[#8E2638]"></div>
+
+                <!-- CABEÇALHO E FILTROS DE BUSCA / ORIXÁ -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#8E2638]/10 pb-6">
+                    <div class="flex items-center gap-3.5">
+                        <div class="icone-editorial-grena">
+                            <i class="fa-solid fa-mortar-pestle text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Acervo Fitoterápico &amp; Litúrgico</span>
+                            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Consulta de Banhos &amp; Defumações</h3>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                        <div class="relative min-w-[260px]">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#8E2638]/60 text-xs"></i>
+                            <input type="text" id="filtro-ervas-busca" oninput="filtrarErvasFilho()" placeholder="Buscar erva (ex: Arruda, Bambu, Alecrim)..." class="input-grande pl-10 py-2.5 text-xs">
+                        </div>
+                        <select id="filtro-ervas-orixa" onchange="filtrarErvasFilho()" class="input-grande py-2.5 text-xs cursor-pointer sm:w-64">
+                            <option value="TODOS">🌿 Todos os Orixás &amp; Linhas</option>
+                            <option value="Oyá / Iansã">⚡ Oyá / Iansã</option>
+                            <option value="Oxalá">🕊️ Oxalá</option>
+                            <option value="Iemanjá">🌊 Iemanjá</option>
+                            <option value="Oxum">💛 Oxum</option>
+                            <option value="Oxóssi">🏹 Oxóssi</option>
+                            <option value="Ogum">⚔️ Ogum</option>
+                            <option value="Xangô">🪓 Xangô</option>
+                            <option value="Obaluaê / Omolu">🍿 Obaluaê / Omolu</option>
+                            <option value="Nanã">💜 Nanã</option>
+                            <option value="Exu & Pombagira">🔱 Exu &amp; Pombagira</option>
+                            <option value="Pretos Velhos">📿 Pretos Velhos</option>
+                            <option value="Caboclos">🍃 Caboclos</option>
+                            <option value="Uso Geral">✨ Uso Geral da Corrente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- LEGENDA DE FUNDAMENTO DAS ERVAS (QUENTE / MORNA / FRIA) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-2xl bg-[#8E2638]/5 border border-[#8E2638]/20 flex items-start gap-3.5">
+                        <span class="w-9 h-9 rounded-xl bg-[#8E2638] text-white flex items-center justify-center shrink-0 text-xs font-black shadow-sm">
+                            <i class="fa-solid fa-fire"></i>
+                        </span>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-[#8E2638] uppercase tracking-wider">Ervas Quentes (Agressivas)</h4>
+                            <p class="text-[11px] text-slate-700 font-medium leading-relaxed mt-1">
+                                Limpeza densa e descarrego profundo. <strong>Sempre do pescoço para baixo</strong>, usadas com parcimónia.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-[#F5F0E8] border border-[#8E2638]/20 flex items-start gap-3.5">
+                        <span class="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 text-xs font-black shadow-sm">
+                            <i class="fa-solid fa-seedling"></i>
+                        </span>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider">Ervas Mornas (Equilibradoras)</h4>
+                            <p class="text-[11px] text-slate-700 font-medium leading-relaxed mt-1">
+                                Abertura de caminhos, harmonia e reposição vital após banhos de descarrego.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-[#A9D8E8]/25 border border-[#A9D8E8] flex items-start gap-3.5">
+                        <span class="w-9 h-9 rounded-xl bg-[#2b677a] text-white flex items-center justify-center shrink-0 text-xs font-black shadow-sm">
+                            <i class="fa-solid fa-snowflake"></i>
+                        </span>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-[#1e4e5f] uppercase tracking-wider">Ervas Frias (Específicas)</h4>
+                            <p class="text-[11px] text-slate-700 font-medium leading-relaxed mt-1">
+                                Atuam diretamente na coroa, intuição e mediunidade. Usar segundo orientação da direção.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTÕES DE FILTRO RÁPIDO POR OBJETIVO -->
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <button onclick="selecionarObjetivoErva('TODOS')" id="tab-erva-TODOS" type="button" class="filtro-objetivo-ativo">
+                        Todos os Objetivos
+                    </button>
+                    <button onclick="selecionarObjetivoErva('Descarrego')" id="tab-erva-Descarrego" type="button" class="filtro-objetivo-inativo">
+                        <i class="fa-solid fa-shield-halved text-[#8E2638]"></i>
+                        <span>Descarrego &amp; Limpeza</span>
+                    </button>
+                    <button onclick="selecionarObjetivoErva('Equilíbrio')" id="tab-erva-Equilibrio" type="button" class="filtro-objetivo-inativo">
+                        <i class="fa-solid fa-yin-yang text-emerald-700"></i>
+                        <span>Equilíbrio &amp; Força</span>
+                    </button>
+                    <button onclick="selecionarObjetivoErva('Abertura de Caminhos')" id="tab-erva-Abertura" type="button" class="filtro-objetivo-inativo">
+                        <i class="fa-solid fa-key text-amber-600"></i>
+                        <span>Abertura de Caminhos</span>
+                    </button>
+                    <button onclick="selecionarObjetivoErva('Calmante / Paz')" id="tab-erva-Calmante" type="button" class="filtro-objetivo-inativo">
+                        <i class="fa-solid fa-dove text-[#2b677a]"></i>
+                        <span>Calmante &amp; Paz</span>
+                    </button>
+                </div>
+
+                <!-- LISTA DE CARDS DE ERVAS E BANHOS PARA O FILHO -->
+                <div id="container-ervas-filho" class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div class="text-center py-12 text-slate-400 col-span-2">
+                        <div class="loader mb-2"></div><br>A carregar guia de ervas e banhos...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================================
+             VISÃO DO ADMIN: CADASTRO E GESTÃO DO GUIA DE ERVAS (#form-ervas)
+             ========================================================================= -->
+        <section id="form-ervas" class="hidden space-y-8">
+            
+            <!-- FORMULÁRIO DE CADASTRO DE BANHO / ERVA -->
+            <div class="pro-card p-6 sm:p-8 relative overflow-hidden">
+                <div class="barra-topo-card bg-[#8E2638]"></div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-[#8E2638]/10 pb-5">
+                    <div class="flex items-center gap-3.5">
+                        <div class="icone-editorial-grena">
+                            <i class="fa-solid fa-leaf text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Direção Espiritual &bull; Fundamentos</span>
+                            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Cadastrar Novo Banho ou Erva</h3>
+                        </div>
+                    </div>
+
+                    <button onclick="popularErvasPadrao()" type="button" class="bg-[#F5F0E8] hover:bg-[#A9D8E8]/35 text-[#8E2638] border border-[#8E2638]/25 text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shrink-0 shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Inserir Guia Base de Ervas</span>
+                    </button>
+                </div>
+
+                <form onsubmit="salvarErvaBanho(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-5">
+                            <label for="erva-nome" class="label-grande">Nome do Banho ou Erva(s):</label>
+                            <input type="text" id="erva-nome" required placeholder="Ex: Banho de Oyá / Arruda com Guiné" class="input-grande">
+                        </div>
+                        <div class="md:col-span-4">
+                            <label for="erva-orixa" class="label-grande">Orixá / Linha Regente:</label>
+                            <input list="lista-orixas-ervas" id="erva-orixa" required placeholder="Selecione ou digite..." class="input-grande">
+                            <datalist id="lista-orixas-ervas">
+                                <option value="Oyá / Iansã">
+                                <option value="Oxalá">
+                                <option value="Iemanjá">
+                                <option value="Oxum">
+                                <option value="Oxóssi">
+                                <option value="Ogum">
+                                <option value="Xangô">
+                                <option value="Obaluaê / Omolu">
+                                <option value="Nanã">
+                                <option value="Exu & Pombagira">
+                                <option value="Pretos Velhos">
+                                <option value="Caboclos">
+                                <option value="Uso Geral">
+                            </datalist>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="erva-objetivo" class="label-grande">Objetivo Principal:</label>
+                            <select id="erva-objetivo" required class="input-grande cursor-pointer">
+                                <option value="Descarrego">🛡️ Descarrego / Limpeza</option>
+                                <option value="Equilíbrio">☯️ Equilíbrio &amp; Força</option>
+                                <option value="Abertura de Caminhos">🔑 Abertura de Caminhos</option>
+                                <option value="Calmante / Paz">🕊️ Calmante &amp; Paz</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="erva-classificacao" class="label-grande">Temperatura Energética:</label>
+                            <select id="erva-classificacao" required class="input-grande cursor-pointer">
+                                <option value="Morna">🌿 Morna (Equilibradora / Harmonia)</option>
+                                <option value="Quente">🔥 Quente (Agressiva / Descarrego Forte)</option>
+                                <option value="Fria">❄️ Fria (Específica / Mediunidade)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="erva-modo-uso" class="label-grande">Como Tomar (Regra da Coroa):</label>
+                            <select id="erva-modo-uso" required class="input-grande cursor-pointer">
+                                <option value="Do pescoço para baixo">🚿 Do pescoço para baixo (Não jogar na cabeça)</option>
+                                <option value="Coroa liberada (Cabeça aos pés)">👑 Coroa liberada (Da cabeça aos pés)</option>
+                                <option value="Apenas Defumação">💨 Apenas para Defumação (Ambiente/Corpo)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="erva-preparo" class="label-grande">Quais Ervas Usar &amp; Como Preparar:</label>
+                        <textarea id="erva-preparo" rows="3" required placeholder="Ex: Quinchar (macerar) folhas frescas de Bambu, Espada de Santa Bárbara e Rosas Vermelhas em água mineral..." class="input-grande resize-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="erva-evitar" class="label-grande">O que Evitar / Contraindicações (Alerta para o Filho):</label>
+                        <input type="text" id="erva-evitar" placeholder="Ex: Proibido jogar na cabeça (coroa). Filhos de Oxum devem evitar Espada de São Jorge sem orientação." class="input-grande">
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="btn-salvar-erva" class="w-full btn-oya-acao font-extrabold py-4 px-5 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Publicar no Guia de Ervas &amp; Banhos</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ACERVO DE ERVAS E BANHOS CADASTRADOS (GESTÃO ADMIN) -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Catálogo da Corrente</span>
+                        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">Banhos e Ervas Cadastrados</h3>
+                    </div>
+                </div>
+
+                <div id="lista-ervas-admin" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="pro-card p-12 text-center text-slate-400 col-span-2">
+                        <div class="loader mb-3"></div><br>A sincronizar catálogo de ervas...
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- RODAPÉ EDITORIAL -->
+    <footer class="w-full py-6 text-center text-xs text-slate-500 border-t border-[#8E2638]/10 bg-[#F5F0E8]/60 relative z-10 no-print">
+        <p class="font-semibold text-slate-600/80">Templo de Umbanda Ventos de Oyá &bull; Caboclo Pena Branca e Mãe Benedita</p>
+    </footer>
+
+    <!-- JS EXCLUSIVO DESTA PASTA -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

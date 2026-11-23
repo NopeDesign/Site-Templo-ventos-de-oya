@@ -1,14 +1,12 @@
-const CACHE_NAME = 'ventos-de-oya-v3';
+const CACHE_NAME = 'ventos-de-oya-v4';
 const ASSETS = [
-    '/',
-    '/css/style.css',
-    '/js/main.js',
-    '/js/config.js',
-    '/js/auth.js',
-    '/js/painelFilho.js',
-    '/js/girasAvisos.js',
-    '/js/faxina.js',
-    '/js/financeiro.js'
+    './',
+    './index.html',
+    './style.css',
+    './script.js',
+    './shared/global.css',
+    './shared/config.js',
+    './shared/logo.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -47,7 +45,7 @@ self.addEventListener('notificationclick', (event) => {
                 }
                 return client.focus();
             }
-            return clients.openWindow('/');
+            return clients.openWindow('./');
         })
     );
 });

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meu Painel | Templo de Umbanda Ventos de Oyá</title>
+    
+    <!-- CONFIGURAÇÃO PWA -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#8E2638">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ventos de Oyá">
+    <link rel="icon" type="image/png" href="../shared/logo.png">
+    <link rel="apple-touch-icon" href="../shared/logo.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS GLOBAL COMPARTILHADO E CSS EXCLUSIVO DO PAINEL DO FILHO -->
+    <link rel="stylesheet" href="../shared/global.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- TEXTURA DE LINHO ARTESANAL SOBRE O FUNDO #F5F0E8 -->
+    <div class="textura-linho pointer-events-none" aria-hidden="true"></div>
+
+    <!-- ATMOSFERA SUTIL DE FUNDO (TRAÇOS DE VENTO DE OYÁ E ÁGUAS DE IEMANJÁ) -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <svg class="w-full h-72 opacity-60" viewBox="0 0 1440 320" fill="none" preserveAspectRatio="none">
+            <path d="M-100,110 C340,20 720,210 1180,80 C1340,35 1460,90 1600,70" stroke="#8E2638" stroke-width="1.2" stroke-opacity="0.10"/>
+            <path d="M-100,170 C280,260 760,40 1200,160 C1380,210 1480,140 1600,160" stroke="#A9D8E8" stroke-width="2" stroke-opacity="0.40"/>
+        </svg>
+    </div>
+
+    <!-- CONTENTOR DE NOTIFICAÇÕES (TOASTS) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print"></div>
+
+    <!-- HEADER EDITORIAL -->
+    <header class="w-full sticky top-0 z-40 border-b border-[#8E2638]/12 bg-[#F5F0E8]/85 backdrop-blur-md no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Identidade da Casa -->
+                <div class="flex items-center gap-3.5">
+                    <div class="p-0.5 rounded-full bg-gradient-to-tr from-[#8E2638] to-[#A9D8E8] shadow-sm">
+                        <img src="../shared/logo.png" alt="Templo de Umbanda Ventos de Oyá" class="w-11 h-11 object-contain rounded-full bg-white p-0.5">
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#8E2638] block leading-none">Portal da Corrente</span>
+                        <h1 class="text-lg font-extrabold text-slate-900 tracking-tight leading-tight mt-1">Ventos de Oyá</h1>
+                    </div>
+                </div>
+
+                <!-- Ações Globais do Filho -->
+                <div class="flex items-center gap-2.5">
+                    <button onclick="pedirPermissaoNotificacao()" id="btn-notificacoes" class="hidden bg-white hover:bg-[#8E2638] text-[#8E2638] hover:text-white border border-[#8E2638]/25 text-xs font-bold px-3.5 py-2 rounded-full transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="hidden sm:inline">Ativar Alertas</span>
+                    </button>
+
+                    <button onclick="instalarApp()" id="btn-instalar-app" class="hidden bg-[#8E2638] hover:bg-[#681927] text-white text-xs font-bold px-4 py-2 rounded-full transition shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span class="hidden sm:inline">Instalar App</span>
+                    </button>
+
+                    <button onclick="realizarLogout()" id="btn-logout-header" class="btn-editorial-outline flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                        <span class="hidden sm:inline">Encerrar Sessão</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL DO PAINEL DO FILHO -->
+    <main id="user-dashboard-view" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8 relative z-10 no-print">
+        
+        <!-- HERO BANNER EDITORIAL & NAVEGAÇÃO ENTRE PASTAS -->
+        <section class="painel-hero-oya rounded-[2rem] text-[#F5F0E8] p-6 sm:p-10 shadow-xl relative overflow-hidden border border-[#8E2638]/30">
+            
+            <!-- Ornamento sutil de fundo (Ventos e Águas) -->
+            <div class="reflexo-hero-iemanja pointer-events-none" aria-hidden="true"></div>
+            <svg class="ornamento-hero-oya pointer-events-none" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+                <circle cx="200" cy="200" r="170" stroke="#A9D8E8" stroke-opacity="0.14" stroke-width="1" stroke-dasharray="6 6"/>
+                <circle cx="200" cy="200" r="125" stroke="#F5F0E8" stroke-opacity="0.08" stroke-width="1"/>
+            </svg>
+
+            <div class="relative z-10 flex flex-col gap-8">
+                
+                <!-- Saudação e Identificação -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] bg-white/10 text-[#A9D8E8] backdrop-blur-sm border border-[#A9D8E8]/25 mb-3">
+                            <span class="w-2 h-2 rounded-full bg-[#A9D8E8] animate-pulse"></span> Membro Ativo da Corrente
+                        </span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                            Axé, <span id="user-nome-display" class="text-[#A9D8E8] capitalize"></span>
+                        </h2>
+                        <p class="text-[#F5F0E8]/80 text-xs sm:text-sm mt-1.5 max-w-xl leading-relaxed">
+                            Consulte a sua escala espiritual, confirme presença nas próximas giras, acompanhe os comunicados da direção e mantenha a sua ficha em dia.
+                        </p>
+                    </div>
+
+                    <div class="hidden lg:block text-right border-l border-white/15 pl-6">
+                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A9D8E8] block">Regência da Casa</span>
+                        <p class="text-xs font-semibold text-white/90 mt-0.5">Caboclo Pena Branca &amp; Mãe Benedita</p>
+                    </div>
+                </div>
+
+                <!-- BARRA DE NAVEGAÇÃO MODULAR (LINKS DIRETOS PARA AS PASTAS DO FILHO) -->
+                <nav aria-label="Navegação do Filho" class="pt-5 border-t border-white/15 flex items-center gap-2 overflow-x-auto custom-scroll pb-1">
+                    <a href="../painel-filho/index.html" id="btn-filho-painel" class="nav-pilula-ativa shrink-0">
+                        <i class="fa-solid fa-house text-xs"></i>
+                        <span>Meu Painel</span>
+                    </a>
+                    <a href="../ponto-irradiacao/index.html" id="btn-filho-oracao" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hands-praying text-xs"></i>
+                        <span>Ponto de Irradiação</span>
+                    </a>
+                    <a href="../festas-listas/index.html" id="btn-filho-festas" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-gifts text-xs"></i>
+                        <span>Festas &amp; Listas</span>
+                        <span id="badge-festas-filho" class="hidden bg-[#A9D8E8] text-[#8E2638] text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5">!</span>
+                    </a>
+                    <a href="../ervas-banhos/index.html" id="btn-filho-ervas" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-leaf text-xs"></i>
+                        <span>Ervas &amp; Banhos</span>
+                    </a>
+                    <a href="../doacoes/index.html" id="btn-filho-doacoes" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-hand-holding-heart text-xs"></i>
+                        <span>Doações</span>
+                    </a>
+                    <a href="../pontos-doutrina/index.html" id="btn-filho-doutrina" class="nav-pilula-inativa shrink-0">
+                        <i class="fa-solid fa-book-open text-xs"></i>
+                        <span>Pontos &amp; Doutrina</span>
+                    </a>
+                </nav>
+
+            </div>
+        </section>
+
+        <!-- BANNER EXCLUSIVO: ALERTA DE FICHA CADASTRAL LIBERADA PELO ADMIN -->
+        <section id="alerta-ficha-liberada" class="hidden bg-white border-2 border-[#8E2638] p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-[#8E2638]"></div>
+            <div class="flex items-start sm:items-center gap-4 pl-2">
+                <div class="w-12 h-12 rounded-2xl bg-[#8E2638]/10 text-[#8E2638] flex items-center justify-center text-xl shrink-0 border border-[#8E2638]/20">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Solicitação da Direção Espiritual</span>
+                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">Ficha Cadastral e Espiritual Liberada para Assinatura</h3>
+                    <p class="text-xs text-slate-600 font-medium mt-0.5">A direção liberou o seu acesso para atualizar os seus dados de Ori, mochila de guias e assinar digitalmente o termo da casa.</p>
+                </div>
+            </div>
+            <a href="../fichas-cadastrais/index.html" onclick="if(window.abrirModalFichaCadastralFilho){ event.preventDefault(); abrirModalFichaCadastralFilho(); }" class="w-full sm:w-auto bg-[#8E2638] hover:bg-[#681927] text-white font-extrabold text-xs px-6 py-3.5 rounded-xl transition shadow-md shrink-0 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-pen-nib"></i>
+                <span>Preencher e Assinar Ficha</span>
+            </a>
+        </section>
+
+        <!-- GRID EDITORIAL PRINCIPAL (12 COLUNAS) -->
+        <div id="filho-aba-painel" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- COLUNA ESQUERDA (4 COLUNAS): CARGOS, ZELADORIA E FICHA FINANCEIRA -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- CARD 1: CARGOS E FUNÇÕES NA GIRA -->
+                <section class="pro-card p-6 relative overflow-hidden">
+                    <div class="barra-topo-card bg-[#8E2638]"></div>
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="icone-editorial-grena">
+                                <i class="fa-solid fa-clipboard-user text-base"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#8E2638] block">Hierarquia &amp; Trabalho</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Cargos &amp; Postos da Gira</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="user-escala-gira">
+                        <div class="text-center py-6 text-slate-400"><div class="loader"></div></div>
+                    </div>
+                </section>
+
+                <!-- CARD 2: ESCALA DE FAXINA E ZELO -->
+                <section class="pro-card p-6 relative overflow-hidden">
+                    <div class="barra-topo-card bg-[#A9D8E8]"></div>
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="icone-editorial-azul">
+                                <i class="fa-solid fa-broom text-base"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#3a7c91] block">Zelo pelo Sagrado</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Escala de Manutenção</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="user-escala-faxina">
+                        <div class="text-center py-6 text-slate-400"><div class="loader"></div></div>
+                    </div>
+                </section>
+
+                <!-- CARD 3: FICHA FINANCEIRA, PIX & COMPROVANTES -->
+                <section class="pro-card p-6 relative overflow-hidden">
+                    <div class="barra-topo-card bg-gradient-to-r from-[#8E2638] to-[#A9D8E8]"></div>
+                    
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="icone-editorial-grena">
+                            <i class="fa-solid fa-scale-balanced text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#8E2638] block">Contribuição Mensal</span>
+                            <h3 class="text-sm font-extrabold text-slate-900">Ficha Financeira</h3>
+                        </div>
+                    </div>
+
+                    <!-- Quadro de Saldo -->
+                    <div id="box-saldo-user" class="bg-[#F5F0E8] rounded-2xl p-5 border border-[#8E2638]/15 mb-5 text-center transition-colors">
+                        <p class="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.18em] mb-1">Total Pendente</p>
+                        <p class="text-3xl font-black text-emerald-700 tracking-tight" id="user-total-divida">R$ 0,00</p>
+                    </div>
+
+                    <!-- Bloco PIX e Upload de Comprovante -->
+                    <div class="painel-pix-editorial rounded-2xl p-5 mb-6 space-y-4 text-[#F5F0E8] shadow-md">
+                        <div class="flex items-center justify-between border-b border-white/15 pb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-brands fa-pix text-[#A9D8E8] text-base"></i>
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-white">Chave PIX Oficial</span>
+                            </div>
+                            <span class="text-[11px] text-[#A9D8E8] font-bold truncate max-w-[145px]" id="pix-chave-display">temploventosdeoya@gmail.com</span>
+                        </div>
+
+                        <button onclick="copiarChavePix()" type="button" class="w-full bg-[#A9D8E8] hover:bg-[#92cce0] text-[#18181B] font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>Copiar Chave PIX</span>
+                        </button>
+
+                        <form id="form-comprovante-supabase" onsubmit="enviarComprovanteSupabase(event)" class="pt-3 border-t border-white/15 space-y-3">
+                            <label for="input-arquivo-comprovante" class="block text-[11px] font-bold text-[#F5F0E8]/90">
+                                Anexar Comprovante (Imagem ou PDF):
+                            </label>
+                            <input type="file" id="input-arquivo-comprovante" accept="image/*,application/pdf" required class="block w-full text-xs text-[#F5F0E8]/80 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-white/15 file:text-white hover:file:bg-white/25 cursor-pointer">
+                            
+                            <input type="text" id="input-obs-comprovante" placeholder="Referente a... (Ex: Mensalidade Nov)" required class="w-full bg-black/25 border border-white/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/50 focus:outline-none focus:border-[#A9D8E8]">
+
+                            <button type="submit" id="btn-enviar-comprovante" class="w-full bg-white hover:bg-[#F5F0E8] text-[#8E2638] font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Enviar Comprovante pelo Portal</span>
+                            </button>
+                        </form>
+
+                        <!-- Lista de Comprovantes em Análise -->
+                        <div id="user-comprovantes-enviados" class="space-y-1.5 pt-1"></div>
+
+                        <button onclick="enviarComprovanteWhatsApp()" type="button" class="w-full bg-white/10 hover:bg-white/15 text-[#A9D8E8] border border-[#A9D8E8]/30 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            <span>Notificar Tesouraria no WhatsApp</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Histórico de Mensalidades -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-[11px] font-extrabold text-[#8E2638] uppercase tracking-wider">Histórico de Mensalidades</h4>
+                        </div>
+                        <div id="user-lista-mensalidades" class="space-y-2 max-h-[220px] overflow-y-auto custom-scroll pr-1"></div>
+                    </div>
+
+                    <!-- Histórico de Extras / Consumo -->
+                    <div class="mt-6 pt-5 border-t border-[#8E2638]/10">
+                        <h4 class="text-[11px] font-extrabold text-[#8E2638] uppercase tracking-wider mb-3">Extras &amp; Consumo</h4>
+                        <div id="user-lista-extras" class="space-y-2 max-h-[180px] overflow-y-auto custom-scroll pr-1"></div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- COLUNA DIREITA (8 COLUNAS): COMUNICADOS, CELEBRAÇÕES E CALENDÁRIO DE GIRAS -->
+            <div class="lg:col-span-8 space-y-8">
+                
+                <!-- CARD 4: MURAL DE COMUNICADOS OFICIAIS -->
+                <section class="pro-card p-6 sm:p-8 relative overflow-hidden">
+                    <div class="barra-topo-card bg-[#8E2638]"></div>
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3.5">
+                            <div class="icone-editorial-grena">
+                                <i class="fa-solid fa-bullhorn text-base"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Direção Espiritual</span>
+                                <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Mural de Comunicados</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="user-mural-avisos" class="space-y-3">
+                        <div class="text-center py-6 text-slate-400"><div class="loader"></div></div>
+                    </div>
+                </section>
+
+                <!-- CARD 5: CALENDÁRIO DE GIRAS + CHECK-IN DE PRESENÇA -->
+                <section class="pro-card p-6 sm:p-8 relative overflow-hidden">
+                    <div class="barra-topo-card bg-gradient-to-r from-[#8E2638] via-[#A9D8E8] to-[#8E2638]"></div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                        <div class="flex items-center gap-3.5">
+                            <div class="icone-editorial-grena">
+                                <i class="fa-regular fa-calendar-check text-base"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8E2638] block">Agenda Litúrgica &amp; Preceitos</span>
+                                <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Calendário de Giras &amp; Presença</h3>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#8E2638] bg-[#8E2638]/10 border border-[#8E2638]/20 px-3.5 py-1.5 rounded-full w-fit">
+                            <i class="fa-solid fa-user-check"></i> Check-in da Corrente Ativo
+                        </span>
+                    </div>
+                    <div id="container-giras">
+                        <div class="text-center py-12 text-slate-400">
+                            <div class="loader mb-3"></div><br>A sincronizar calendário de trabalhos...
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CARD 6: RADAR DE CELEBRAÇÕES (ANIVERSARIANTES DE VIDA E DE CORRENTE) -->
+                <section class="pro-card p-6 sm:p-8 relative overflow-hidden">
+                    <div class="barra-topo-card bg-[#A9D8E8]"></div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3.5">
+                            <div class="icone-editorial-azul">
+                                <i class="fa-solid fa-cake-candles text-base"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#3a7c91] block">Fraternidade da Casa</span>
+                                <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+                                    Celebrações de <span id="mes-celebracao-titulo" class="text-[#8E2638]"></span>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="user-radar-aniversariantes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="text-center py-6 text-slate-400 col-span-2"><div class="loader"></div></div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- RODAPÉ EDITORIAL -->
+    <footer class="w-full py-6 text-center text-xs text-slate-500 border-t border-[#8E2638]/10 bg-[#F5F0E8]/60 relative z-10 no-print">
+        <p class="font-semibold text-slate-600/80">Templo de Umbanda Ventos de Oyá &bull; Caboclo Pena Branca e Mãe Benedita</p>
+    </footer>
+
+    <!-- MODAL (FILHO): JUSTIFICAR AUSÊNCIA NA GIRA -->
+    <div id="modal-justificativa-gira" class="hidden fixed inset-0 modal-bg z-[65] flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-[#8E2638]/20">
+            <div class="painel-hero-oya text-white px-6 py-5 flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#A9D8E8] block">Comunicação à Direção</span>
+                    <h3 class="font-extrabold text-lg leading-tight mt-0.5" id="modal-just-titulo">Justificar Ausência na Gira</h3>
+                </div>
+                <button onclick="fecharModalJustificativa()" type="button" class="text-white/70 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="form-justificativa-gira" onsubmit="confirmarJustificativaAusencia(event)" class="p-6 space-y-4">
+                <input type="hidden" id="just-gira-id">
+                <div>
+                    <label for="just-motivo-texto" class="label-grande">Motivo da Ausência:</label>
+                    <textarea id="just-motivo-texto" rows="3" required placeholder="Explique brevemente o motivo (Ex: Escala de trabalho, saúde, compromisso familiar...)" class="input-grande resize-none"></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="fecharModalJustificativa()" type="button" class="w-1/3 bg-[#F5F0E8] hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-xs transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-enviar-justificativa" class="w-2/3 bg-[#8E2638] hover:bg-[#681927] text-white font-extrabold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Enviar Justificativa</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JS EXCLUSIVO DESTA PASTA -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
