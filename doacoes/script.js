@@ -3,16 +3,12 @@ import {
     exigirSessao, realizarLogoutGlobal, mostrarToast 
 } from '../shared/config.js';
 
-// Verifica se o utilizador está autenticado (permite Filho e Admin)
 const usuarioAtivo = exigirSessao(false);
 let modoVisaoAtual = (usuarioAtivo && usuarioAtivo.is_admin) ? 'admin' : 'filho';
 
 let campanhasCacheLocal = [];
 let doacoesCacheLocal = [];
 
-// =========================================================================
-// 1. CONFIGURAÇÃO VISUAL POR CARGO (FILHO VS ADMIN)
-// =========================================================================
 function inicializarInterfacePorCargo() {
     if (!state.usuarioLogado) return;
     const isAdmin = state.usuarioLogado.is_admin === true;
@@ -67,21 +63,17 @@ export function copiarChavePix() {
     });
 }
 
-// =========================================================================
-// 2. CARREGAMENTO GERAL DE CAMPANHAS E DOAÇÕES
-// =========================================================================
 export async function carregarModuloDoacoes() {
     if (!state.usuarioLogado) return;
 
     const [resCampanhas, resDoacoes] = await Promise.all([
         supabase.from('campanhas_doacao').select('*').order('created_at', { ascending: false }),
-        supabase.from('doacoes_registros').select('*').order('created_at', { ascending: false })
+        supabase.from('doacoes').select('*').order('created_at', { ascending: false })
     ]);
 
     campanhasCacheLocal = resCampanhas.data || [];
     doacoesCacheLocal = resDoacoes.data || [];
 
-    // Atualiza badge de doações pendentes no menu Admin
     const pendentesCount = doacoesCacheLocal.filter(d => d.status === 'pendente').length;
     const badgeDoacoes = document.getElementById('badge-doacoes-admin');
     if (badgeDoacoes) {
@@ -99,9 +91,6 @@ export async function carregarModuloDoacoes() {
     }
 }
 
-// =========================================================================
-// 3. VISÃO DO FILHO: FORMULÁRIO, HISTÓRICO E CAMPANHAS ATIVAS
-// =========================================================================
 export function alternarCamposTipoDoacaoFilho() {
     const tipo = document.getElementById('doacao-filho-tipo').value;
     const labelValor = document.getElementById('label-doacao-valor-qtd');
@@ -155,16 +144,17 @@ export async function registrarDoacaoFilho(event) {
     const enviarParaBanco = async (base64Data = null, fileType = null) => {
         if (btn) btn.disabled = true;
 
-        const { error } = await supabase.from('doacoes_registros').insert([{
+        const { error } = await supabase.from('doacoes').insert([{
             filho_id: state.usuarioLogado.id,
-            filho_nome: state.usuarioLogado.nome,
+            doador_nome: state.usuarioLogado.nome,
             campanha_id: campanhaId,
             campanha_titulo: campanhaTitulo,
-            tipo: tipo,
-            valor_ou_qtd: valorNum,
-            descricao: desc,
-            arquivo_base64: base64Data,
-            arquivo_tipo: fileType,
+            tipo_doacao: tipo,
+            valor: tipo === 'pix' ? valorNum : 0,
+            quantidade_itens: tipo === 'material' ? Math.round(valorNum) : 0,
+            descricao_item: desc,
+            comprovante_base64: base64Data,
+            comprovante_tipo: fileType,
             status: 'pendente'
         }]);
 
@@ -207,14 +197,14 @@ function renderizarHistoricoFilho(todasDoacoes) {
 
     container.innerHTML = minhas.map(d => {
         const isConfirmada = d.status === 'confirmada';
-        const valorFormatado = d.tipo === 'pix'
-            ? `R$ ${Number(d.valor_ou_qtd || 0).toFixed(2).replace('.', ',')}`
-            : `${d.valor_ou_qtd} un.`;
+        const valorFormatado = d.tipo_doacao === 'pix'
+            ? `R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}`
+            : `${d.quantidade_itens || 0} un.`;
 
         return `
             <div class="flex items-center justify-between p-3 rounded-xl border ${isConfirmada ? 'bg-emerald-50/50 border-emerald-200' : 'bg-[#F5F0E8]/70 border-[#8E2638]/15'} text-xs gap-2">
                 <div class="min-w-0">
-                    <p class="font-extrabold text-slate-900 truncate">${d.descricao}</p>
+                    <p class="font-extrabold text-slate-900 truncate">${d.descricao_item}</p>
                     <p class="text-[10px] font-semibold text-slate-500 truncate">${d.campanha_titulo || 'Doação Livre'} &bull; <strong>${valorFormatado}</strong></p>
                 </div>
                 <span class="shrink-0 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full ${isConfirmada ? 'bg-emerald-700 text-white' : 'bg-[#A9D8E8]/50 text-[#1e4e5f]'}">
@@ -241,8 +231,8 @@ function renderizarCampanhasFilho(campanhas) {
 }
 
 function criarCardCampanhaHtml(c, isAdmin = false) {
-    const meta = Number(c.meta_valor || 1);
-    const atual = Number(c.arrecadado || 0);
+    const meta = Number(c.meta_total || 1);
+    const atual = Number(c.arrecadado_atual || 0);
     const pct = Math.min(100, Math.round((atual / meta) * 100));
     const isValor = c.tipo_meta === 'valor';
 
@@ -279,9 +269,6 @@ function criarCardCampanhaHtml(c, isAdmin = false) {
     `;
 }
 
-// =========================================================================
-// 4. VISÃO DO ADMIN: CONFIRMAR DOAÇÕES, VER COMPROVANTE E GERIR CAMPANHAS
-// =========================================================================
 function renderizarDoacoesRecebidasAdmin(doacoes) {
     const container = document.getElementById('lista-doacoes-admin');
     if (!container) return;
@@ -293,28 +280,28 @@ function renderizarDoacoesRecebidasAdmin(doacoes) {
 
     container.innerHTML = doacoes.map(d => {
         const isConfirmada = d.status === 'confirmada';
-        const valorFmt = d.tipo === 'pix'
-            ? `R$ ${Number(d.valor_ou_qtd || 0).toFixed(2).replace('.', ',')}`
-            : `${d.valor_ou_qtd} un.`;
+        const valorFmt = d.tipo_doacao === 'pix'
+            ? `R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}`
+            : `${d.quantidade_itens || 0} un.`;
 
         return `
             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border ${isConfirmada ? 'bg-white border-slate-200/80' : 'bg-[#F5F0E8] border-[#8E2638]/30 shadow-sm'} gap-4">
                 <div class="space-y-1">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-extrabold text-sm text-slate-900 capitalize">${d.filho_nome}</span>
+                        <span class="font-extrabold text-sm text-slate-900 capitalize">${d.doador_nome}</span>
                         <span class="bg-[#8E2638] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">${valorFmt}</span>
                         <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${isConfirmada ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                             ${isConfirmada ? 'Confirmada' : 'Pendente'}
                         </span>
                     </div>
-                    <p class="text-xs font-bold text-slate-700">${d.descricao}</p>
+                    <p class="text-xs font-bold text-slate-700">${d.descricao_item}</p>
                     <p class="text-[11px] font-semibold text-[#2b677a]">
                         <i class="fa-solid fa-bullseye mr-1"></i>Destino: ${d.campanha_titulo || 'Manutenção Geral do Templo'}
                     </p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    ${d.arquivo_base64 ? `
+                    ${d.comprovante_base64 ? `
                         <button onclick="abrirModalComprovanteDoacao('${d.id}')" type="button" class="bg-white hover:bg-[#A9D8E8]/30 text-slate-700 border border-[#8E2638]/20 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
                             <i class="fa-regular fa-eye text-[#8E2638]"></i> Ver Comprovante
                         </button>
@@ -350,7 +337,7 @@ export async function confirmarDoacaoAdmin(doacaoId) {
     if (!doacao) return;
 
     const { error } = await supabase
-        .from('doacoes_registros')
+        .from('doacoes')
         .update({ status: 'confirmada' })
         .eq('id', doacaoId);
 
@@ -359,25 +346,25 @@ export async function confirmarDoacaoAdmin(doacaoId) {
         return;
     }
 
-    // Se estiver vinculada a uma campanha, soma automaticamente na meta da campanha
     if (doacao.campanha_id) {
         const camp = campanhasCacheLocal.find(c => String(c.id) === String(doacao.campanha_id));
         if (camp) {
-            const novoTotal = Number(camp.arrecadado || 0) + Number(doacao.valor_ou_qtd || 0);
+            const incremento = camp.tipo_meta === 'valor' ? Number(doacao.valor || 0) : Number(doacao.quantidade_itens || 0);
+            const novoTotal = Number(camp.arrecadado_atual || 0) + incremento;
             await supabase
                 .from('campanhas_doacao')
-                .update({ arrecadado: novoTotal })
+                .update({ arrecadado_atual: novoTotal })
                 .eq('id', camp.id);
         }
     }
 
-    mostrarToast("Doação Confirmada!", `A doação de ${doacao.filho_nome} foi validada com sucesso.`);
+    mostrarToast("Doação Confirmada!", `A doação de ${doacao.doador_nome} foi validada com sucesso.`);
     carregarModuloDoacoes();
 }
 
 export async function apagarDoacaoAdmin(doacaoId) {
     if (confirm("Deseja remover este registo de doação?")) {
-        const { error } = await supabase.from('doacoes_registros').delete().eq('id', doacaoId);
+        const { error } = await supabase.from('doacoes').delete().eq('id', doacaoId);
         if (!error) {
             mostrarToast("Registo Removido", "A doação foi apagada da lista.");
             carregarModuloDoacoes();
@@ -396,10 +383,10 @@ export async function criarCampanhaDoacaoAdmin(event) {
     if (btn) btn.disabled = true;
 
     const { error } = await supabase.from('campanhas_doacao').insert([{
-        titulo: titulo,
+        titulo,
         tipo_meta: tipoMeta,
-        meta_valor: metaValor,
-        arrecadado: 0,
+        meta_total: metaValor,
+        arrecadado_atual: 0,
         descricao: desc || null
     }]);
 
@@ -426,21 +413,18 @@ export async function apagarCampanhaAdmin(id) {
     }
 }
 
-// =========================================================================
-// 5. MODAL DE VISUALIZAÇÃO DO COMPROVANTE (IMAGEM OU PDF)
-// =========================================================================
 export function abrirModalComprovanteDoacao(doacaoId) {
     const doacao = doacoesCacheLocal.find(d => String(d.id) === String(doacaoId));
-    if (!doacao || !doacao.arquivo_base64) return;
+    if (!doacao || !doacao.comprovante_base64) return;
 
-    document.getElementById('modal-comp-titulo').innerText = `Doação: ${doacao.filho_nome}`;
-    document.getElementById('modal-comp-subtitulo').innerText = `${doacao.descricao} (R$ ${Number(doacao.valor_ou_qtd || 0).toFixed(2).replace('.', ',')})`;
+    document.getElementById('modal-comp-titulo').innerText = `Doação: ${doacao.doador_nome}`;
+    document.getElementById('modal-comp-subtitulo').innerText = `${doacao.descricao_item} (R$ ${Number(doacao.valor || 0).toFixed(2).replace('.', ',')})`;
 
     const corpo = document.getElementById('modal-comp-corpo');
-    if ((doacao.arquivo_tipo || '').includes('pdf')) {
-        corpo.innerHTML = `<iframe src="${doacao.arquivo_base64}" class="w-full h-[500px] rounded-xl border border-slate-300"></iframe>`;
+    if ((doacao.comprovante_tipo || '').includes('pdf')) {
+        corpo.innerHTML = `<iframe src="${doacao.comprovante_base64}" class="w-full h-[500px] rounded-xl border border-slate-300"></iframe>`;
     } else {
-        corpo.innerHTML = `<img src="${doacao.arquivo_base64}" alt="Comprovante" class="max-h-[70vh] w-auto object-contain rounded-2xl shadow-md">`;
+        corpo.innerHTML = `<img src="${doacao.comprovante_base64}" alt="Comprovante" class="max-h-[70vh] w-auto object-contain rounded-2xl shadow-md">`;
     }
 
     document.getElementById('modal-comprovante').classList.remove('hidden');
@@ -450,9 +434,6 @@ export function fecharModalComprovante() {
     document.getElementById('modal-comprovante').classList.add('hidden');
 }
 
-// =========================================================================
-// 6. BADGES COMPLEMENTARES E ATUALIZAÇÃO EM TEMPO REAL
-// =========================================================================
 async function atualizarBadgesComplementares() {
     if (!state.usuarioLogado) return;
 
@@ -490,10 +471,9 @@ async function atualizarBadgesComplementares() {
 
 supabase.channel('doacoes-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'campanhas_doacao' }, () => carregarModuloDoacoes())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'doacoes_registros' }, () => carregarModuloDoacoes())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'doacoes' }, () => carregarModuloDoacoes())
     .subscribe();
 
-// Expor funções para os botões do HTML
 Object.assign(window, {
     realizarLogout: realizarLogoutGlobal,
     alternarModoVisaoDoacoes,

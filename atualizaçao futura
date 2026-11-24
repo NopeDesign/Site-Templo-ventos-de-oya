@@ -1,0 +1,652 @@
+10 MELHORIAS GERAIS — MÓDULO AGENDAR GIRA, PRESENÇAS & AVISOS
+
+
+
+2. EVITAR MÚLTIPLAS CONSULTAS PARA OS BADGES DO MENU (DESEMPENHO)
+
+A função atualizarBadgesMenuAdmin() dispara 3 consultas separadas (pedidos_oracao, doacoes_registros e comprovantes) sempre que ocorre uma alteração. Centralize a atualização usando debounce e atualize exclusivamente o contador da tabela que sofreu alteração.
+
+
+
+3. SUBSTITUIR O TAILWIND VIA CDN POR CSS COMPILADO EM PRODUÇÃO (DESEMPENHO E VISUAL)
+
+O script https://cdn.tailwindcss.com compila as classes CSS no navegador do utilizador a cada carregamento, causando lentidão inicial e possível piscada visual (FOUC). Em produção, utilize um arquivo CSS estático gerado previamente e remova user-scalable=no da tag viewport para garantir acessibilidade e zoom em dispositivos móveis.
+
+
+
+4. TROCAR ALERT() POR NOTIFICAÇÕES TOAST NATIVAS (VISUAL E UX)
+
+Nos blocos de erro de salvarGira, apagarGiraAdmin e salvarAviso, o uso de alert() bloqueia a interface do navegador e destoa da identidade visual editorial do portal. Substitua todos os alertas padrão por chamadas a mostrarToast().
+
+
+
+5. EVITAR SELETORES GENÉRICOS PARA RESETAR FORMULÁRIOS (MANUTENIBILIDADE)
+
+O uso de document.getElementById('form-gira').querySelector('form').reset() é frágil caso novos formulários sejam inseridos na mesma seção no futuro. Atribua identificadores próprios aos formulários (ex: id="form-agendar-gira" e id="form-criar-aviso") e execute o reset diretamente pelo ID.
+
+
+
+6. PREENCHIMENTO INTELIGENTE SEM APAGAR DADOS DIGITADOS (USABILIDADE)
+
+Atualmente, a função atualizarResumoGira() limpa o campo de banho e sobrescreve a roupa a cada tecla digitada (oninput). Ajuste a lógica para preencher os valores padrão apenas quando o campo estiver vazio ou quando corresponder exatamente a uma opção pré-definida da lista, preservando alterações manuais do administrador.
+
+
+
+7. ADICIONAR EDIÇÃO DE GIRAS E AVISOS PUBLICADOS (FUNCIONALIDADE)
+
+O painel permite apenas criar ou excluir giras e comunicados. Caso haja erro de horário, data ou texto, a direção precisa apagar e cadastrar novamente. Inclua um botão de edição em cada item para carregar os dados no formulário e atualizar o registro via .update() no Supabase.
+
+
+
+8. INCLUIR BARRA DE PESQUISA E FILTRO NAS PRÓXIMAS GIRAS (USABILIDADE)
+
+Quando há várias giras agendadas no calendário, localizar uma data ou linha específica exige rolar toda a página. Adicione um campo de busca rápida acima da listagem para filtrar instantaneamente por linha de trabalho, vestimenta, preceito ou mês.
+
+
+
+9. PERMITIR QUEBRA DE LINHA NA BARRA DE NAVEGAÇÃO NO DESKTOP (VISUAL)
+
+Em telas maiores, a barra de navegação superior mantém rolagem horizontal e acaba cortando itens na borda direita. Aplique quebra de linha (flex-wrap) em resoluções desktop (md:flex-wrap) para exibir todos os módulos de uma vez, mantendo a rolagem lateral apenas em telemóveis.
+
+
+
+10. OTIMIZAR ANIMAÇÕES CONTÍNUAS EM SEGUNDO PLANO (DESEMPENHO E BATERIA)
+
+A rotação infinita do ornamento SVG no cabeçalho (.ornamento-hero-oya) e o efeito animate-ping sobre elementos com backdrop-blur consomem recursos gráficos continuamente. Utilize transições mais leves e pause as animações via visibilitychange quando a aba do navegador estiver oculta.
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+10 COISAS PARA MELHORAR - CAIXA FINANCEIRO & BASE DE DADOS
+
+1. DESEMPENHO (Re-buscar tudo ao mudar 1 tabela):
+Hoje, qualquer mudança em caixa, mensalidades ou doações chama carregarFluxoCaixa() e faz 4 SELECTs completos de novo. Separe e use um debounce curto (ex.: 200ms) para atualizar apenas o que mudou.
+
+2. DESEMPENHO (Badges com múltiplas consultas):
+As atualizações de badges no menu rodam SELECT com count exact para várias tabelas em vários eventos. Atualize só o badge correspondente à tabela que disparou o evento.
+
+3. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e viewport):
+Evite depender do compilador do Tailwind via CDN em produção para reduzir lentidão e piscada de estilo, e remova user-scalable=no da meta viewport para não bloquear o zoom de acessibilidade.
+
+4. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em adicionarMovimentacaoCaixa(), quando ocorre erro ao gravar, use mostrarToast() em vez de alert(), mantendo o visual sem travar a tela.
+
+5. BUG / FRAGILIDADE (Data de entrada ao calcular mensalidades):
+No cálculo de mensalidades, use filho.data_entrada (e tenha fallback seguro caso venha nula) para não quebrar a contagem de meses de nenhum integrante.
+
+6. ADICIONAR COISA (Filtro por período e tipo no Fluxo de Caixa):
+Adicione filtros rápidos de Tipo (Todos, Entradas, Saídas) e Mês/Busca na tabela de movimentações para facilitar a conferência da tesouraria.
+
+7. ADICIONAR COISA (Resumo por origem no topo):
+Além de Entradas, Saídas e Saldo, mostre um detalhamento rápido de quanto veio de Lançamentos Manuais, Mensalidades e Doações PIX confirmadas.
+
+8. ADICIONAR COISA (Exportar extrato em CSV):
+Adicione um botão "Exportar CSV" na tabela do caixa para baixar o extrato consolidado e abrir no Excel ou Google Sheets.
+
+9. VISUAL (Barra de navegação no desktop):
+Permita quebra de linha (md:flex-wrap) no menu superior dentro do hero no desktop para que todas as abas fiquem visíveis sem cortar na borda lateral.
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause animações contínuas decorativas quando a aba estiver oculta (document.hidden) e respeite prefers-reduced-motion para economizar GPU e bateria.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 MELHORIAS GERAIS — MÓDULO CARGOS & POSTOS DA GIRA
+
+
+
+1. CORRIGIR O NOME DA TABELA DE DOAÇÕES NOS BADGES DO MENU (BUG / SCHEMA)
+
+No arquivo script.js, a função atualizarBadgesMenuAdmin() consulta a tabela doacoes_registros, enquanto o schema atual do Supabase utiliza a tabela doacoes. Corrija para supabase.from('doacoes') para evitar erros silenciosos de rede e garantir que o contador de doações pendentes funcione no menu.
+
+
+
+2. EVITAR MÚLTIPLAS CONSULTAS PARA OS BADGES DO MENU (DESEMPENHO)
+
+Atualmente, atualizarBadgesMenuAdmin() dispara 3 consultas separadas (pedidos_oracao, doacoes e comprovantes) sempre que ocorre uma alteração em qualquer uma das tabelas. Centralize a atualização com debounce e atualize exclusivamente o badge correspondente à tabela que sofreu alteração.
+
+
+
+3. SUBSTITUIR O TAILWIND VIA CDN POR CSS COMPILADO EM PRODUÇÃO (DESEMPENHO E ACESSIBILIDADE)
+
+O script https://cdn.tailwindcss.com compila as classes CSS no navegador do utilizador a cada carregamento, causando lentidão inicial e possível piscada visual (FOUC). Utilize CSS estático em produção e remova user-scalable=no da tag meta viewport para garantir zoom e acessibilidade em dispositivos móveis.
+
+
+
+4. TROCAR ALERT() POR NOTIFICAÇÕES TOAST NATIVAS (VISUAL E UX)
+
+No tratamento de erro de salvarPostoGira(), o uso de alert() bloqueia a interface do navegador e quebra a harmonia visual da página. Substitua por mostrarToast('Erro ao Salvar', '...', 'erro').
+
+
+
+5. EVITAR DUPLICIDADE DE CARGOS OU CONFLITOS DE ESCALA NA MESMA GIRA (VALIDAÇÃO)
+
+Hoje é possível escalar o mesmo médium duas vezes para a mesma gira ou atribuir dois cargos fixos idênticos sem aviso. Adicione uma verificação antes do insert() para alertar caso o médium já esteja escalado naquela gira específica.
+
+
+
+6. ADICIONAR EDIÇÃO DE CARGO / POSTO ESCALADO (FUNCIONALIDADE)
+
+Atualmente, se houver necessidade de alterar a orientação ("Com quem vai trabalhar") ou corrigir o nome da função, a direção precisa excluir o cartão e cadastrar novamente. Inclua um botão de edição em cada cartão para carregar os dados no formulário e atualizar via .update() no Supabase.
+
+
+
+7. ADICIONAR FILTRO POR FILHO OU CARGO NO QUADRO OFICIAL (USABILIDADE)
+
+Quando o terreiro possui muitos cargos fixos e várias giras futuras agendadas, localizar a escala de um médium específico exige percorrer todos os blocos. Adicione um campo de busca rápida acima do Quadro Oficial para filtrar por nome do filho ou função.
+
+
+
+8. PERMITIR QUEBRA DE LINHA NA BARRA DE NAVEGAÇÃO NO DESKTOP (VISUAL)
+
+Em telas maiores, a barra de navegação superior mantém rolagem horizontal e acaba cortando os últimos módulos na borda direita. Aplique quebra de linha em resoluções desktop (md:flex-wrap) para exibir todos os módulos de uma vez, mantendo a rolagem lateral apenas em telemóveis.
+
+
+
+9. OTIMIZAR ANIMAÇÕES CONTÍNUAS EM SEGUNDO PLANO (DESEMPENHO E BATERIA)
+
+A rotação infinita do ornamento SVG no cabeçalho (.ornamento-hero-oya) consome GPU continuamente mesmo quando a aba está inativa. Adicione pausa automática via visibilitychange quando document.hidden for verdadeiro e respeite prefers-reduced-motion.
+
+
+
+10. EXIBIR CONTADOR DE FILHOS SEM CARGO OU ESCALA NAS PRÓXIMAS GIRAS (GESTÃO)
+
+Inclua um resumo rápido no topo do quadro mostrando quantos filhos ativos ainda não possuem função atribuída na próxima gira, facilitando a distribuição equilibrada das tarefas (porteira, cambonos, curimba e defumação) pela direção.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - CENTRAL DE DOAÇÕES & CAMPANHAS
+
+1. DESEMPENHO (Re-buscar campanhas e doações em bloco):
+Hoje, qualquer evento no Supabase em campanhas_doacao ou doacoes chama carregarModuloDoacoes() inteiro e refaz o render de todas as listas/abas. Use um debounce curto (ex.: 200ms) e atualize apenas a visão ativa (Filho ou Admin) em vez de renderizar tudo de uma vez.
+
+2. DESEMPENHO (Badges com consultas separadas):
+atualizarBadgesComplementares() faz consultas em paralelo em vários momentos. Centralize a atualização e consulte apenas a tabela correspondente ao evento recebido no canal realtime.
+
+3. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e viewport):
+Em produção, evite o compilador do Tailwind via CDN para acelerar o carregamento e evitar piscada de estilo, e remova user-scalable=no da meta viewport para manter o zoom de acessibilidade funcionando.
+
+4. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em registrarDoacaoFilho(), quando dá erro ao gravar ou ficheiro passa do tamanho limite, use mostrarToast() em vez de alert() para manter a interface fluida e sem bloqueios.
+
+5. BUG / SCHEMA (Alinhamento com o banco):
+Garanta que as operações usem os nomes exatos do banco (ex.: tabela doacoes, colunas doador_nome, tipo_doacao, valor, quantidade_itens, descricao_item, comprovante_base64, comprovante_tipo e, nas campanhas, meta_total e arrecadado_atual).
+
+6. ADICIONAR COISA (Filtro de doações no Admin):
+Adicione um filtro rápido no Admin para alternar entre "Todas", "Pendentes" e "Confirmadas", facilitando a conferência da tesouraria quando houver muitas doações.
+
+7. ADICIONAR COISA (Contadores/totais de doações no topo):
+Mostre cartões ou badges resumindo o total pendente, total confirmado em PIX e total de itens/materiais doados para facilitar a leitura rápida.
+
+8. ADICIONAR COISA (Opção de editar campanha):
+Adicione um botão para editar título, meta, descrição ou status ativa de uma campanha existente, evitando ter de apagar e recriar caso mude algum dado.
+
+9. VISUAL (Barra de navegação no desktop):
+Permita quebra de linha (md:flex-wrap) na navegação dentro do hero no desktop para que todas as abas fiquem visíveis sem cortar na lateral, mantendo rolagem horizontal apenas no mobile.
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause animações contínuas decorativas quando a aba estiver oculta (document.hidden) e respeite prefers-reduced-motion para poupar GPU e bateria.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - GUIA DE ERVAS & BANHOS
+
+1. BUG CRÍTICO DE SCHEMA (Colunas erradas do banco):
+No script.js estão a ser usadas as colunas `erva.preparo` e `erva.evitar`[cite: 20], mas na tabela `ervas_banhos` do Supabase os nomes exatos são `ervas_preparo` e `cuidados_evitar`. Por isso os textos de preparo e contraindicações aparecem como "undefined" ou falham ao gravar.
+
+2. DESEMPENHO (Re-buscar toda a tabela a cada alteração em tempo real):
+No canal `ervas-banhos-realtime`, qualquer INSERT/UPDATE/DELETE chama `carregarErvasBanhos()` imediatamente[cite: 20]. Adicione um debounce curto (ex.: 200ms) ou atualize apenas `ervasCacheLocal` a partir do payload recebido sem refazer o SELECT inteiro.
+
+3. DESEMPENHO (Badges no menu superior):
+`atualizarBadgesComplementares()` dispara várias consultas `count: 'exact'` em paralelo ao abrir a página[cite: 20]. Ligue também atualização seletiva por tabela nos eventos realtime para não refazer todas as contagens juntas.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, substitua o compilador `<script src="https://cdn.tailwindcss.com"></script>` por CSS compilado para eliminar atraso na renderização e piscada de layout, e remova `user-scalable=no` da meta viewport para não bloquear o zoom de acessibilidade[cite: 19].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em `salvarErvaBanho()` e `popularErvasPadrao()`, os erros usam `alert(...)`, que trava o navegador e destoa do visual[cite: 20]. Substitua por `mostrarToast('Erro', '...', 'erro')`.
+
+6. BUG / FRAGILIDADE (Reset do formulário com querySelector):
+`document.getElementById('form-ervas').querySelector('form').reset()` pode resetar o formulário errado se outro `<form>` for adicionado na secção[cite: 20]. Coloque um `id="form-cadastro-erva"` direto na tag `<form>` e resete pelo ID.
+
+7. ADICIONAR COISA (Editar banho ou erva existente):
+Hoje só existe botão de apagar (`apagarErvaBanho`)[cite: 20]. Adicione um botão de editar em cada card do Admin que preenche o formulário com os dados do banho e faz `.update(...)` no Supabase.
+
+8. ADICIONAR COISA (Filtro por Temperatura Energética na Visão do Filho):
+Os filhos já têm filtro por Orixá e Objetivo, mas não conseguem filtrar rapidamente por "Erva Quente", "Erva Morna" ou "Erva Fria"[cite: 19, 20]. Adicione pílulas de filtro por temperatura para facilitar antes da gira.
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` nas barras `#nav-barra-filho` e `#nav-barra-admin` para que todas as abas fiquem visíveis no desktop sem cortar na borda direita[cite: 19].
+
+10. DESEMPENHO / VISUAL (Animação contínua em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 21] quando a aba estiver oculta (`document.hidden`) e respeite `prefers-reduced-motion` para poupar GPU e bateria em telemóveis.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - ESCALA DE FAXINA & ZELO
+
+1. BUG DE SCHEMA NOS BADGES (Tabela errada):
+Na função atualizarBadgesMenuAdmin(), está sendo consultada a tabela `doacoes_registros`, mas no Supabase o nome correto da tabela é `doacoes`[cite: 23].
+
+2. DESEMPENHO (Re-buscar grupos e filhos em bloco a cada evento realtime):
+No canal `admin-faxina-realtime`, qualquer alteração em `grupos_faxina` ou `filhos` dispara `carregarGestaoFaxina()` imediatamente e refaz 2 SELECTs inteiros[cite: 23]. Adicione um debounce curto (ex.: 200ms) para evitar múltiplas consultas seguidas ao mover vários filhos de grupo.
+
+3. DESEMPENHO (Consultas separadas nos badges do menu):
+`atualizarBadgesMenuAdmin()` faz 3 consultas `count: 'exact'` juntas[cite: 23]. Ligue os ouvintes realtime por tabela para atualizar apenas o badge específico quando houver alteração.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, substitua `<script src="https://cdn.tailwindcss.com"></script>` por CSS compilado para evitar atraso na renderização e piscada de layout, e remova `user-scalable=no` da meta viewport para manter o zoom de acessibilidade[cite: 22].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em `criarGrupoFaxina()`, `atualizarDataGrupoFaxina()`, `moverFilhoGrupo()` e `apagarGrupoFaxina()`, os avisos e erros usam `alert(...)`, que trava o navegador[cite: 23]. Substitua por `mostrarToast()`.
+
+6. ADICIONAR COISA (Renomear grupo de faxina existente):
+Hoje o admin consegue editar a data e a observação dentro do cartão do grupo, mas não consegue editar o nome do grupo sem apagar e recriar[cite: 22, 23]. Permita editar o nome do grupo diretamente no cartão ou no formulário.
+
+7. ADICIONAR COISA (Filtro / busca de grupos ou integrantes):
+Quando houver muitos grupos ou filhos na corrente, um campo rápido de busca para localizar em qual grupo um médium está alocado agiliza a organização.
+
+8. ADICIONAR COISA (Botão de impressão / partilha da escala):
+Adicione um botão para imprimir ou copiar o resumo da próxima escala de faxina formatado para enviar no grupo de WhatsApp da corrente.
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` na `<nav>` dentro do hero[cite: 22] para que todas as abas administrativas fiquem visíveis no desktop sem cortar na borda direita.
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 24] quando a aba estiver oculta (`document.hidden`), substitua `animate-pulse` do badge de escala hoje[cite: 23] por indicador estático ou mais leve e respeite `prefers-reduced-motion`.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - FESTAS & OBRIGAÇÕES ("QUEM LEVA O QUÊ")
+
+1. BUG DE SCHEMA NOS BADGES (Tabela errada):
+Na função atualizarBadgesAdmin(), está sendo consultada a tabela `doacoes_registros`, mas no schema do Supabase o nome correto da tabela é `doacoes`[cite: 26].
+
+2. DESEMPENHO (Re-buscar festas e todos os itens a cada evento realtime):
+No canal `festas-listas-realtime`, qualquer alteração em `festas` ou `festa_itens` dispara `carregarFestas()` inteiro e refaz 2 SELECTs completos[cite: 26]. Adicione um debounce curto (ex.: 200ms) ou atualize apenas a lista afetada para reduzir chamadas em picos de cliques.
+
+3. DESEMPENHO (Atualização de badges em lote):
+`atualizarBadgesAdmin()` faz 3 consultas `count: 'exact'` em paralelo[cite: 26]. Atualize apenas o badge correspondente à tabela que disparou o evento em tempo real.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, evite o compilador `<script src="https://cdn.tailwindcss.com"></script>` para não atrasar a renderização nem causar piscada de estilo, e remova `user-scalable=no` da meta viewport para respeitar o zoom de acessibilidade[cite: 25].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+As falhas de validação ou gravação em `assumirItemFesta()`, `desmarcarItemFesta()`, `criarFestaAdmin()` e `adicionarItemFestaAdmin()` usam `alert(...)`, que trava a tela[cite: 26]. Troque por `mostrarToast()` com mensagem clara.
+
+6. ADICIONAR COISA (Editar festa ou observação):
+Hoje o admin só consegue criar ou excluir uma festa (`criarFestaAdmin`, `apagarFestaAdmin`)[cite: 26]. Adicione uma ação de editar título, data ou recado para corrigir erros sem perder os itens já assumidos.
+
+7. ADICIONAR COISA (Filtro "Apenas itens disponíveis" na Visão do Filho):
+Adicione um filtro rápido para o filho ver apenas os itens ainda livres ou apenas os itens marcados com o seu próprio nome, facilitando a escolha em listas grandes[cite: 25, 26].
+
+8. ADICIONAR COISA (Copiar lista resumida para WhatsApp):
+Adicione um botão para copiar o resumo da festa (itens já assumidos com o nome de cada irmão e itens ainda pendentes) para enviar no grupo da corrente.
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` nas barras `#nav-barra-filho` e `#nav-barra-admin`[cite: 25] para que todas as abas fiquem visíveis no desktop sem cortar na borda direita.
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 27] quando a aba estiver oculta (`document.hidden`) e respeite `prefers-reduced-motion` para economizar GPU e bateria.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - FICHAS CADASTRAIS & ESPIRITUAIS
+
+1. BUG DE TIPO NO BANCO (Boolean vs 'sim'/'nao'):
+No script.js, os campos `frequentou_outro`, `possui_obrigacoes`, `ja_incorporou`, `ja_batizado` e `usa_medicacao` usam `'sim'` e `'nao'`, mas no schema do Supabase essas colunas são `boolean` (`true` / `false`)[cite: 29]. Converta para booleano ao salvar e ao preencher (`ficha?.frequentou_outro ? 'sim' : 'nao'`).
+
+2. DESEMPENHO (Redimensionar ou limpar listeners do Canvas):
+A função `inicializarCanvasAssinatura` adiciona listeners `mouseup` e `touchend` na `window` a cada inicialização[cite: 29]. Evite registrar listeners duplicados na `window` e ajuste o `width`/`height` do canvas à escala real do dispositivo (`devicePixelRatio`) para o traço ficar nítido em telas Retina/mobile.
+
+3. DESEMPENHO (Evitar `setTimeout` arbitrário para desenhar assinaturas):
+Em vez de esperar `60ms` com `setTimeout` após remover a classe `hidden`, desenhe as assinaturas logo após o elemento ficar visível ou garanta que o canvas já tenha dimensões válidas[cite: 29].
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, substitua o compilador `<script src="https://cdn.tailwindcss.com"></script>` por CSS compilado para acelerar o carregamento e evitar piscada de layout, e remova `user-scalable=no` da meta viewport para não bloquear o zoom de acessibilidade[cite: 28].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em `toggleLiberarFichaFilho()` e `salvarFichaCadastralCompleta()`, os erros usam `alert(...)`, que trava o navegador[cite: 29]. Troque por `mostrarToast()` para manter a interface fluida.
+
+6. ADICIONAR COISA (Validação de assinatura obrigatória antes de salvar):
+Permita avisar quando o quadro de assinatura do médium estiver totalmente em branco antes de gravar o compromisso, evitando fichas enviadas sem assinatura por engano[cite: 28, 29].
+
+7. ADICIONAR COISA (Filtros rápidos na lista do Admin):
+Além da busca por nome ou Santo do Ori, adicione filtros rápidos para ver apenas "Assinadas", "Liberadas" ou "Pendentes" na lista da direção[cite: 28, 29].
+
+8. ADICIONAR COISA (Exibir resumo de saúde e Ori no cartão da ficha no Admin):
+Mostre no cartão de cada filho na visão administrativa se há alerta de medicação contínua ou limitação física, facilitando o cuidado da direção antes das giras[cite: 28, 29].
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` nas barras `#nav-barra-filho` e `#nav-barra-admin` para que todas as abas fiquem visíveis no desktop sem cortar na borda lateral[cite: 28].
+
+10. DESEMPENHO / VISUAL (Animação contínua em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 30] quando a aba estiver oculta (`document.hidden`) e respeite `prefers-reduced-motion` para poupar GPU e bateria.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - FILHOS & MENSALIDADES
+
+1. BUG DE COLUNA NO BANCO (data_cadastro em filhos):
+Em `abrirFicha()`, o cálculo da data de início usa `filho.data_entrada || filho.data_cadastro || dataHoje`[cite: 32]. Na tabela `filhos` do seu banco o campo é `data_entrada` (não existe `data_cadastro`), então use `filho.data_entrada || dataHoje`.
+
+2. DESEMPENHO (Re-buscar tudo ao mudar 1 tabela):
+Qualquer evento em `filhos`, `comprovantes` ou `mensalidades` chama `carregarGestaoFilhosMensalidades()` e executa 4 `SELECT`s inteiros[cite: 32]. Use um debounce curto (ex.: 200ms) ou atualize apenas a lista afetada.
+
+3. DESEMPENHO (Consultas separadas nos badges do menu):
+`atualizarBadgesMenuAdmin()` faz consultas `count: 'exact'` em paralelo[cite: 32]. Atualize apenas o badge correspondente à tabela que mudou no canal realtime.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, evite `<script src="https://cdn.tailwindcss.com"></script>` para não atrasar a renderização nem dar piscada de estilo, e remova `user-scalable=no` da meta viewport para manter o zoom de acessibilidade[cite: 31].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em `adicionarFilho()`, `apagarFilhoAdmin()` e `salvarDatasFilho()`, os erros usam `alert(...)`, que trava a tela[cite: 32]. Substitua por `mostrarToast()`.
+
+6. ADICIONAR COISA (Busca / filtro na Corrente Ativa):
+Adicione um campo de busca por nome na secção "Corrente Ativa & Fichas Cadastrais" para localizar rapidamente um filho quando a lista crescer[cite: 31, 32].
+
+7. ADICIONAR COISA (Valor da mensalidade dinâmico por filho):
+A tabela `filhos` já possui `valor_mensalidade` (padrão `100.00`), mas o cálculo no modal está fixo em `100`[cite: 32]. Use `Number(filho.valor_mensalidade || 100)` para respeitar valores diferentes caso existam.
+
+8. ADICIONAR COISA (Atalho para abrir a Ficha Cadastral completa):
+No cartão de cada filho na visão administrativa, adicione um atalho direto para abrir a ficha cadastral completa e espiritual correspondente àquele integrante[cite: 31, 32].
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` na `<nav>` do menu administrativo[cite: 31] para que todas as abas fiquem visíveis no desktop sem cortar na borda lateral.
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 33] quando a aba estiver oculta (`document.hidden`), evite `animate-bounce` e `animate-pulse` contínuos nos badges de aniversário[cite: 32] e respeite `prefers-reduced-motion`.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - MEU PAINEL (PAINEL DO FILHO)
+
+1. DESEMPENHO (Re-buscar listas completas a cada evento realtime):
+No canal `painel-filho-realtime`, mudanças em `avisos`, `giras`, `escala_gira` ou `fichas_cadastrais` disparam buscas completas de imediato[cite: 35]. Adicione um debounce curto (ex.: 200ms) e atualize apenas a secção correspondente ao evento recebido.
+
+2. DESEMPENHO (Re-buscar `filhos` inteiro a cada abertura do painel):
+`carregarPainelDoFilho()` busca todos os registros da tabela `filhos` apenas para atualizar o utilizador logado e o radar de aniversariantes[cite: 35]. Considere buscar os dados do utilizador logado e os aniversariantes do mês corrente para reduzir tráfego conforme a corrente cresce.
+
+3. BUG / COLUNA NO BANCO (`data_cadastro` em `filhos`):
+Em `carregarFinanceiroPessoal()`, o cálculo da data de início usa `user.data_entrada || user.data_cadastro || dataHoje`[cite: 35]. Na tabela `filhos` do schema o campo é `data_entrada` (não existe `data_cadastro`), então use `user.data_entrada || dataHoje`.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, substitua o compilador `<script src="https://cdn.tailwindcss.com"></script>` por CSS compilado para acelerar o carregamento e evitar piscada de layout, e remova `user-scalable=no` da meta viewport para não bloquear o zoom de acessibilidade[cite: 34].
+
+5. VISUAL / UX (Trocar `alert()` por `mostrarToast()`):
+Em `marcarPresencaGira()`, `confirmarJustificativaAusencia()`, `enviarComprovanteSupabase()` e `pedirPermissaoNotificacao()`, os avisos e erros usam `alert(...)`, que trava a tela[cite: 35]. Troque por `mostrarToast()`.
+
+6. ADICIONAR COISA (Valor da mensalidade dinâmico no cálculo):
+No cálculo das mensalidades pendentes em `carregarFinanceiroPessoal()`, o valor está fixo em `100`[cite: 35]. Use `Number(user.valor_mensalidade || 100)` para respeitar o valor cadastrado na tabela `filhos`.
+
+7. ADICIONAR COISA (Filtro rápido de giras / busca por linha):
+Adicione um campo de filtro simples na secção "Calendário de Giras & Presença" para o filho localizar rapidamente uma gira por linha de trabalho ou data[cite: 34, 35].
+
+8. ADICIONAR COISA (Atalho para abrir a Ficha Cadastral completa):
+No HTML, o banner de ficha liberada chama `abrirModalFichaCadastralFilho()` no `onclick`, mas essa função não está definida em `script.js` (o módulo separado fica em `../fichas-cadastrais/index.html`)[cite: 34, 35]. Deixe o link apontar diretamente para `../fichas-cadastrais/index.html` sem `onclick` inexistente.
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` na `<nav>` do menu do filho[cite: 34] para que todas as abas fiquem visíveis no desktop sem precisar de rolagem lateral.
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 36] quando a aba estiver oculta (`document.hidden`), substitua `animate-ping` do badge de próxima gira e `animate-bounce` dos aniversários[cite: 35] por indicadores mais leves e respeite `prefers-reduced-motion`.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - PONTO DE IRRADIAÇÃO & PRECES
+
+1. BUG DE SCHEMA NOS BADGES (Tabela errada):
+Na função atualizarBadgesComplementares(), está sendo consultada a tabela `doacoes_registros`, mas no schema do Supabase o nome correto da tabela é `doacoes`[cite: 38].
+
+2. DESEMPENHO (Re-buscar toda a tabela a cada evento realtime):
+No canal `ponto-irradiacao-realtime`, qualquer INSERT/UPDATE/DELETE em `pedidos_oracao` chama `carregarPedidosOracao()` de imediato[cite: 38]. Adicione um debounce curto (ex.: 200ms) para evitar excesso de consultas em envios rápidos.
+
+3. DESEMPENHO (Consultas paralelas nos badges):
+`atualizarBadgesComplementares()` roda consultas `count: 'exact'` em paralelo[cite: 38]. Atualize apenas o badge correspondente quando houver evento na respectiva tabela.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, evite o compilador `<script src="https://cdn.tailwindcss.com"></script>` para não atrasar a renderização nem causar piscada de layout, e remova `user-scalable=no` da meta viewport para respeitar o zoom de acessibilidade[cite: 37].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em `salvarPedidoOracaoFilho()`, `salvarPedidoOracaoAdmin()` e `limparTodosPedidosOracaoAdmin()`, os erros usam `alert(...)`, que trava a tela[cite: 38]. Substitua por `mostrarToast('Erro', '...', 'erro')`.
+
+6. ADICIONAR COISA (Busca / filtro rápido no Livro do Congá):
+Na visão administrativa, adicione um campo de busca por nome ou motivo para localizar rapidamente um pedido específico antes da leitura na gira[cite: 37, 38].
+
+7. ADICIONAR COISA (Copiar lista de preces formatada para WhatsApp):
+Adicione um botão para copiar os nomes agrupados por finalidade em texto limpo, facilitando o envio ou leitura em outros aparelhos[cite: 37, 38].
+
+8. ADICIONAR COISA (Remover apenas uma finalidade ou pedido individual com feedback claro):
+Mantenha a remoção individual simples e adicione confirmação clara no botão de limpar toda a caixa após a gira[cite: 37, 38].
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` nas barras `#nav-barra-filho` e `#nav-barra-admin` para que todas as abas fiquem visíveis no desktop sem cortar na lateral[cite: 37].
+
+10. DESEMPENHO / VISUAL (Animação contínua em background):
+Pause a rotação de `.ornamento-hero-oya` quando a aba estiver oculta (`document.hidden`) e respeite `prefers-reduced-motion` para economizar GPU e bateria[cite: 39].
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - CADERNO DE PONTOS & DOUTRINA
+
+1. BUG CRÍTICO DE SCHEMA (Nome da tabela no banco):
+No script.js, as consultas e o canal realtime usam `pontos_doutrina`[cite: 40], mas no schema do Supabase a tabela correta chama-se `doutrina`. Altere para `doutrina` para que os pontos e regras carreguem e sejam gravados.
+
+2. DESEMPENHO (Re-buscar toda a tabela a cada evento realtime):
+No canal `pontos-doutrina-realtime`, qualquer alteração em `pontos_doutrina` chama `carregarDoutrina()` imediatamente[cite: 40]. Adicione um debounce curto (ex.: 200ms) para evitar múltiplas consultas seguidas.
+
+3. DESEMPENHO E BUG DE SCHEMA (Badges no menu superior):
+`atualizarBadgesComplementares()` roda consultas `count: 'exact'` em paralelo e consulta `doacoes_registros` em vez de `doacoes`[cite: 40]. Atualize apenas o badge correspondente aos eventos recebidos.
+
+4. DESEMPENHO E ACESSIBILIDADE (Tailwind CDN e zoom):
+Em produção, substitua `<script src="https://cdn.tailwindcss.com"></script>` por CSS compilado para evitar atraso na renderização e piscada de layout, e remova `user-scalable=no` da meta viewport para respeitar o zoom de acessibilidade[cite: 39].
+
+5. VISUAL / UX (Trocar alert() por mostrarToast()):
+Em `salvarDoutrina()` e `popularDoutrinaPadrao()`, os erros usam `alert(...)`, que trava a tela[cite: 40]. Substitua por `mostrarToast('Erro', '...', 'erro')`.
+
+6. BUG / FRAGILIDADE (Reset do formulário com querySelector):
+`document.getElementById('form-doutrina').querySelector('form').reset()` pode pegar o formulário errado caso outro `<form>` entre na secção[cite: 40]. Dê um `id` direto ao `<form>` e resete por ele.
+
+7. ADICIONAR COISA (Editar ponto, reza ou regra):
+Hoje só existe opção de apagar (`apagarDoutrina`)[cite: 40]. Adicione um botão de editar nos cards do Admin para corrigir letras, linhas, links ou regras sem precisar apagar e refazer.
+
+8. ADICIONAR COISA (Botão copiar letra do ponto):
+Adicione um botão "Copiar letra" nos cartões da visão do filho para facilitar partilhar ou estudar o ponto com rapidez[cite: 39, 40].
+
+9. VISUAL (Barra de navegação no desktop):
+Adicione `md:flex-wrap` e `md:overflow-visible` nas barras `#nav-barra-filho` e `#nav-barra-admin` para que todas as abas fiquem visíveis no desktop sem cortar na borda lateral[cite: 39].
+
+10. DESEMPENHO / VISUAL (Animações contínuas em background):
+Pause a rotação de `.ornamento-hero-oya`[cite: 41] quando a aba estiver oculta (`document.hidden`) e respeite `prefers-reduced-motion` para economizar GPU e bateria.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 COISAS PARA MELHORAR - CONFIG.JS, GLOBAL.CSS E LOGO
+
+1. BUG DE DATA LOCAL (dataHoje):
+new Date().toISOString().split('T')[0] usa UTC e pode adiantar o dia à noite no fuso local[cite: 45]. Gere a data usando ano, mês e dia locais.
+
+2. BUG DE SESSÃO INVÁLIDA (exigirSessao):
+Proteja JSON.parse() com try/catch em exigirSessao()[cite: 45] para limpar sessão corrompida e redirecionar sem quebrar o script.
+
+3. VISUAL / UX (Tipos de toast e limite na tela):
+Adicione suporte a sucesso, erro e aviso em mostrarToast()[cite: 45] e limite o número de toasts abertos ao mesmo tempo.
+
+4. MANUTENÇÃO (Configuração centralizada):
+Mantenha FINANCEIRO_CONFIG[cite: 45] como fonte única de PIX, favorecido e WhatsApp e valide o número antes de gerar links.
+
+5. DESEMPENHO (backdrop-filter em vários .pro-card):
+Evite blur() em muitos cartões simultâneos sobre fundo texturizado[cite: 46] para não pesar a GPU no mobile.
+
+6. DESEMPENHO (Filtro SVG feTurbulence em tela cheia):
+Substitua a turbulência SVG fixa[cite: 46] por textura leve para deixar o scroll mais fluido.
+
+7. VISUAL / ACESSIBILIDADE (Foco visível e contraste):
+Adicione estilos de :focus-visible em botões e links[cite: 46] e revise o contraste dos textos em cinza claro sobre fundo areia/branco.
+
+8. ADICIONAR COISA (Helpers de moeda e data):
+Exporte funções formatarMoedaBR() e formatarDataBR() no config.js[cite: 45] para padronizar a exibição em todos os módulos.
+
+9. VISUAL DO LOGO (Fundo preto e bordas):
+O logo em fundo preto[cite: 47] pode ficar pesado ou cortar detalhes em molduras claras; prefira PNG transparente ou ajuste o enquadramento.
+
+10. ADICIONAR COISA (Fechar toast manualmente):
+Inclua botão de fechar (X) no toast[cite: 45] para dispensar mensagens na hora.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+20 MELHORIAS - TELA DE LOGIN, SERVICE WORKER (SW.JS) E MANIFEST PWA
+
+1. BUG DE REGISTO DO SERVICE WORKER EM SUBPASTAS (script.js):
+No script.js está `navigator.serviceWorker.register('/sw.js')` com barra absoluta `/sw.js`, o que falha se o projeto estiver hospedado num subdiretório (ex.: GitHub Pages `/nome-do-repo/`). Use `'./sw.js'` para funcionar em qualquer domínio ou subpasta.
+
+2. BUG DE CACHE DE NAVEGAÇÃO OFFLINE (sw.js):
+No evento `fetch` do `sw.js`, `caches.match(event.request)` falha se a URL tiver parâmetros (ex.: `?v=1`) ou se a navegação offline pedir uma subpágina ainda não guardada. Adicione fallback para `'./index.html'` quando `event.request.mode === 'navigate'` falhar na rede.
+
+3. DESEMPENHO DO SERVICE WORKER (Cache de recursos externos):
+O `sw.js` não faz cache de fontes/ícones ou folhas de estilo secundárias, e usa network-first para ficheiros estáticos (CSS/JS/logo), atrasando a abertura em 3G/4G. Use estratégia Stale-While-Revalidate para `ASSETS` locais e network-first apenas para páginas HTML.
+
+4. SEGURANÇA / AUTENTICAÇÃO (Validação de login no lado do cliente):
+O login faz `select('*')` na tabela `filhos` filtrando `nome` e `senha` direto via chave pública no cliente. Crie uma função RPC no Supabase (`SECURITY DEFINER`) que receba apenas nome e código e devolva só os campos necessários da sessão, sem expor senhas ou dados de outros filhos.
+
+5. BUG DE HOMÓNIMOS NO LOGIN (script.js):
+`.ilike('nome', nomeInput).eq('senha', senhaInput).maybeSingle()` gera erro se houver dois filhos com o mesmo nome e mesmos 3 dígitos de CPF. Trate erros específicos de múltiplas correspondências e oriente o utilizador a informar o nome completo.
+
+6. BUG DE ACENTUAÇÃO / ESPAÇOS DUPLOS NO NOME (script.js):
+Se o filho digitar espaços extras no meio do nome (`"João  Silva"`), `.ilike('nome', nomeInput)` não encontra o registo. Normalize espaços múltiplos (`nomeInput.replace(/\s+/g, ' ')`) antes da consulta.
+
+7. DESEMPENHO (Compilador Tailwind CDN no carregamento inicial):
+A tela de login carrega `<script src="https://cdn.tailwindcss.com"></script>`, que executa JavaScript pesado antes de estilizar o card principal. Substitua por CSS compilado estático para abertura instantânea.
+
+8. DESEMPENHO DE GPU (Múltiplas animações SVG infinitas simultâneas):
+A tela de login roda simultaneamente 3 linhas de vento (`stroke-dashoffset`), 3 folhas flutuando, 4 camadas de ondas (`transform`), 1 espiral girando (`60s`) e `filter: blur(25px)`. Pause todas as animações quando `document.hidden` for verdadeiro e reduza camadas no mobile para poupar bateria.
+
+9. ACESSIBILIDADE (Zoom bloqueado e redução de movimento):
+Remova `maximum-scale=1.0, user-scalable=no` da meta viewport do `index.html` e adicione `@media (prefers-reduced-motion: reduce)` no `style.css` para desligar animações contínuas para quem tem sensibilidade visual.
+
+10. UX NO FORMULÁRIO DE LOGIN (Botão mostrar/ocultar código de 3 dígitos):
+Adicione um ícone de olho dentro do campo `#login-senha` para o filho poder conferir os 3 dígitos digitados sem errar no telemóvel.
+
+11. UX NO LOGIN (Autocompletar e capitalização corretos):
+Adicione `autocomplete="name"` e `autocapitalize="words"` no `#login-nome` e `autocomplete="one-time-code"` no `#login-senha` para facilitar o preenchimento pelo teclado do telemóvel.
+
+12. UX NO LOGIN (Limpar mensagem de erro ao voltar a digitar):
+Hoje o alerta `#login-error` continua visível mesmo depois que o utilizador começa a corrigir o nome ou a senha. Esconda `#login-error` automaticamente no evento `input` dos dois campos.
+
+13. UX / PREVENÇÃO DE FORÇA BRUTA (Bloqueio temporário após tentativas falhas):
+Após 5 tentativas seguidas de login inválido, aplique uma pausa progressiva (ex.: 15 segundos) no botão de entrar com aviso amigável no toast.
+
+14. PWA / ÍCONES (Ícone maskable dedicado no manifest.json):
+No `manifest.json`, `shared/logo.png` está marcado como `"any maskable"`. Ícones `maskable` precisam de margem de segurança interna (~20%) para não cortar a estrela e os símbolos nas bordas em Android. Crie um ícone específico `logo-maskable.png` e mantenha `logo.png` como `"any"`.
+
+15. PWA / INSTALL PROMPT (Instruções de instalação para iOS / Safari):
+O evento `beforeinstallprompt` só funciona no Chrome/Edge/Android; no iPhone (Safari) o botão `#btn-instalar-app` nunca aparece. Detecte iOS fora do modo `standalone` e mostre um botão/dica rápida de "Adicionar ao Ecrã Principal".
+
+16. PWA / ATUALIZAÇÃO (Aviso de nova versão do Service Worker):
+Quando `CACHE_NAME` mudar (`v4` -> `v5`), o novo Service Worker instala mas a página aberta continua na versão antiga até recarregar. Exiba um toast "Nova versão disponível — toque para atualizar" quando `controllerchange` ocorrer.
+
+17. VISUAL MOBILE (Acesso ao botão Instalar App no telemóvel):
+No `style.css`, `@media (max-width: 1023px)` oculta `body > header` com `display: none !important`, escondendo também o botão `#btn-instalar-app` no telemóvel (justamente onde o PWA é mais instalado). Mova ou duplique o botão de instalação para dentro do card mobile.
+
+18. VISUAL MOBILE (Contraste do fundo do logo no brasão):
+No `index.html`, o `logo.png` está dentro de `bg-white` (`rounded-full bg-white p-2`). Se o ficheiro `logo.png` tiver fundo escuro/preto como o `logo.jpg` enviado anteriormente, cria um círculo preto duro dentro do aro branco. Harmonize a cor de fundo do círculo com o fundo real do logo.
+
+19. ROBUSTEZ (Timeout e tratamento de falha de rede no Supabase):
+Se a internet oscilar durante o `realizarLogin()`, o `await supabase...` pode demorar e deixar o utilizador sem saber se é erro de senha ou falta de conexão. Diferencie erro de rede/servidor (`error` técnico) de credenciais não encontradas (`!data`).
+
+20. LIMPEZA DE CACHE (sw.js não guarda as subpastas principais):
+A lista `ASSETS` do `sw.js` guarda apenas a raiz (`index.html`, `style.css`, `script.js`), deixando `painel-filho/index.html` e `agendar-gira/index.html` sem pré-cache offline. Inclua as páginas e estilos principais dos módulos na lista de cache inicial ou dinâmico.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10 IDEIAS DE NOVOS MÓDULOS E RECURSOS GERAIS — TEMPLO DE UMBANDA VENTOS DE OYÁ
+
+
+
+1. NOVA ABA "PRECEITOS & OBRIGAÇÕES" (CALENDÁRIO PESSOAL DE PRECEITOS)
+
+Uma aba onde o médium registra seus próprios preceitos (antes de batismo, feitura, troca de guia ou gira específica) e acompanha lembretes simples de tempo sem álcool, carne vermelha ou resguardo diretamente no painel.
+
+
+
+2. NOVA ABA "MOCHILA & FERRAMENTAS DO MÉDIUM"
+
+Um inventário pessoal de cada filho (guias, velas, pemba, pontos riscados anotados, roupas e itens guardados no terreiro) para ninguém esquecer o que precisa levar ou perder materiais na rotina das giras.
+
+
+
+3. NOVA ABA "ATENDIMENTOS & PASSE / CONSULTA"
+
+Um painel simples para a direção organizar a fila, ordem ou observações gerais dos atendimentos (atendimento de assistência, orientação ou gira aberta) sem expor dados sensíveis de quem passa em consulta.
+
+
+
+4. NOVA ABA "EMPRÉSTIMOS & MATERIAIS DA CASA"
+
+Controle prático de itens emprestados ou retirados do terreiro (livros, instrumentos portáteis, toalhas, ferramentas de manutenção) com o nome de quem pegou, data e status de devolução.
+
+
+
+5. BOTÃO "MODO LEITURA / CONGÁ" NO CADERNO DE PONTOS & DOUTRINA
+
+Um modo de tela limpa com letra ampliada, alto contraste e rolagem simplificada, pensado para quem está acompanhando ponto cantado ou reza durante a gira sem distrações visuais.
+
+
+
+6. RESUMO SEMANAL AUTOMÁTICO PARA WHATSAPP (1 CLIQUE)
+
+Um botão no painel da direção que gera um texto formatado e pronto para copiar e colar no grupo da corrente, reunindo: próxima gira, data, horário, vestimenta, banho/preceito, avisos ativos e escala de faxina.
+
+
+
+7. CHECKLIST RÁPIDO DE ABERTURA E FECHAMENTO DE GIRA
+
+Uma lista prática para a direção e equipe de apoio conferirem antes e depois dos trabalhos (acender firmezas, defumação, água, curimba, limpeza final e desligamento geral), marcando o que já foi concluído no dia.
+
+
+
+8. CENTRAL DE DÚVIDAS FREQUENTES DA CASA (FAQ)
+
+Uma aba objetiva com respostas diretas para as dúvidas mais comuns da corrente (como usar o código de acesso, como enviar comprovante PIX, como justificar ausência na gira, regras de vestimenta e convivência).
+
+
+
+9. HISTÓRICO DE PRESENÇA POR MÉDIUM
+
+Na visão administrativa, permitir consultar o histórico recente de presenças e ausências justificadas de cada filho para acompanhar a assiduidade na corrente e identificar quem precisa de apoio.
+
+
+
+10. AVISO DE "SEM INTERNET / MODO OFFLINE" CLARO
+
+Quando o sinal cair na rua ou dentro do templo, exibir um banner discreto avisando que o dispositivo está sem conexão e que novas alterações só serão gravadas quando a internet voltar, evitando a sensação de travamento.

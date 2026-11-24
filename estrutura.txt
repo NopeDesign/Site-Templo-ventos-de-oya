@@ -61,10 +61,10 @@
 │   ├── 📄 style.css x
 │   └── 📄 script.js x
 │
-├── 📁 fichas-cadastrais/          (Ficha Oficial com Ori, Saúde e Assinatura no Canvas)
-│   ├── 📄 index.html
-│   ├── 📄 style.css
-│   └── 📄 script.js
+├── 📁 fichas-cadastrais/          (Ficha Oficial com Ori, Saúde e Assinatura no Canvas) x
+│   ├── 📄 index.html x
+│   ├── 📄 style.css x
+│   └── 📄 script.js x
 │
 └── 📁 caixa-financeiro/           (Fluxo de Caixa Entradas/Saídas e Base de Dados)
     ├── 📄 index.html

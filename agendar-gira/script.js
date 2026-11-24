@@ -4,11 +4,15 @@ import {
 } from '../shared/config.js';
 
 let girasCacheLocal = [];
+let escalasCacheLocal = [];
+let presencasCacheLocal = [];
+let timerPresencasRealtime = null;
+const timersBadgesRealtime = {};
 
-// Garante que apenas administradores acedam a esta pasta
+// Garante que apenas administradores acedam a esta pasta[cite: 54]
 const adminAtivo = exigirSessao(true);
 
-// Preenche as datas padrão nos formulários ao abrir a página
+// Preenche as datas padrão nos formulários ao abrir a página[cite: 54]
 const inputGiraData = document.getElementById('gira-data');
 if (inputGiraData) inputGiraData.value = dataHoje;
 
@@ -73,23 +77,11 @@ export async function salvarGira(event) {
     }
 }
 
-export async function carregarGirasAdmin() {
+function renderizarGirasCacheAdmin() {
     const containerAdmin = document.getElementById('container-giras-admin');
     if (!containerAdmin) return;
 
-    const [resGiras, resEscalas, resPresencas] = await Promise.all([
-        supabase.from('giras').select('*').gte('data', dataHoje).order('data', { ascending: true }),
-        supabase.from('escala_gira').select('*').order('funcao', { ascending: true }),
-        supabase.from('presencas_gira').select('*')
-    ]);
-    
-    const data = resGiras.data || [];
-    const escalas = resEscalas.data || [];
-    const presencas = resPresencas.data || [];
-
-    girasCacheLocal = data;
-
-    if (data.length === 0) { 
+    if (girasCacheLocal.length === 0) { 
         containerAdmin.innerHTML = `
             <div class="text-center py-10 bg-[#F5F0E8]/60 rounded-2xl border border-dashed border-[#8E2638]/20">
                 <i class="fa-regular fa-calendar-xmark text-2xl text-[#8E2638]/40 mb-2"></i>
@@ -99,13 +91,13 @@ export async function carregarGirasAdmin() {
     }
     
     let html = '<div class="space-y-4">';
-    data.forEach((gira, index) => {
+    girasCacheLocal.forEach((gira, index) => {
         const [ano, mes, dia] = gira.data.split('-');
         const isProx = index === 0;
         const horaAb = gira.horario_abertura ? gira.horario_abertura.substring(0, 5) : '19:00';
         const infoRoupa = gira.roupa || 'Branca';
         
-        const postosDaGira = escalas.filter(e => e.gira_id === gira.id || e.gira_id === null);
+        const postosDaGira = escalasCacheLocal.filter(e => e.gira_id === gira.id || e.gira_id === null);
 
         const htmlPostos = postosDaGira.length === 0 ? '' : `
             <div class="pt-2.5 border-t border-[#8E2638]/10">
@@ -122,7 +114,7 @@ export async function carregarGirasAdmin() {
                 </div>
             </div>`;
 
-        const presencasDestaGira = presencas.filter(pr => pr.gira_id === gira.id);
+        const presencasDestaGira = presencasCacheLocal.filter(pr => pr.gira_id === gira.id);
         const qtdPresentes = presencasDestaGira.filter(pr => pr.status === 'presente').length;
         const qtdAusentes = presencasDestaGira.filter(pr => pr.status === 'ausente').length;
 
@@ -183,6 +175,46 @@ export async function carregarGirasAdmin() {
     containerAdmin.innerHTML = html;
 }
 
+export async function carregarGirasAdmin() {
+    const containerAdmin = document.getElementById('container-giras-admin');
+    if (!containerAdmin) return;
+
+    const [resGiras, resEscalas, resPresencas] = await Promise.all([
+        supabase.from('giras').select('*').gte('data', dataHoje).order('data', { ascending: true }),
+        supabase.from('escala_gira').select('*').order('funcao', { ascending: true }),
+        supabase.from('presencas_gira').select('*')
+    ]);
+    
+    girasCacheLocal = resGiras.data || [];
+    escalasCacheLocal = resEscalas.data || [];
+    presencasCacheLocal = resPresencas.data || [];
+
+    renderizarGirasCacheAdmin();
+}
+
+export async function atualizarPresencasGiraAdmin(giraIdAfetada = null) {
+    const { data, error } = await supabase.from('presencas_gira').select('*');
+    if (error) return;
+
+    presencasCacheLocal = data || [];
+    renderizarGirasCacheAdmin();
+
+    const modalPres = document.getElementById('modal-presencas-admin');
+    if (modalPres && !modalPres.classList.contains('hidden')) {
+        const idAberto = modalPres.dataset.giraId;
+        if (idAberto && (!giraIdAfetada || String(idAberto) === String(giraIdAfetada))) {
+            await abrirModalPresencasAdmin(idAberto);
+        }
+    }
+}
+
+function agendarAtualizacaoPresencas(giraIdAfetada = null) {
+    if (timerPresencasRealtime) clearTimeout(timerPresencasRealtime);
+    timerPresencasRealtime = setTimeout(() => {
+        atualizarPresencasGiraAdmin(giraIdAfetada);
+    }, 200);
+}
+
 export async function apagarGiraAdmin(id) {
     if (confirm("Deseja realmente apagar esta gira do calendário?")) {
         const { error } = await supabase.from('giras').delete().eq('id', id);
@@ -197,6 +229,9 @@ export async function apagarGiraAdmin(id) {
 // 3. MODAL DE LISTA DE PRESENÇA E JUSTIFICATIVAS DA GIRA
 // =========================================================================
 export async function abrirModalPresencasAdmin(giraId) {
+    const modalEl = document.getElementById('modal-presencas-admin');
+    if (modalEl) modalEl.dataset.giraId = giraId;
+
     const gira = girasCacheLocal.find(g => g.id === giraId);
     const tituloEl = document.getElementById('modal-pres-admin-titulo');
     if (gira && tituloEl) {
@@ -259,6 +294,8 @@ export async function abrirModalPresencasAdmin(giraId) {
 }
 
 export function fecharModalPresencasAdmin() {
+    const modalEl = document.getElementById('modal-presencas-admin');
+    if (modalEl) delete modalEl.dataset.giraId;
     document.getElementById('modal-presencas-admin').classList.add('hidden');
 }
 
@@ -335,44 +372,68 @@ export async function apagarAvisoAdmin(id) {
 // =========================================================================
 // 5. BADGES DE NOTIFICAÇÃO DO MENU SUPERIOR E TEMPO REAL
 // =========================================================================
-async function atualizarBadgesMenuAdmin() {
-    const [resOracao, resDoacoes, resComps] = await Promise.all([
-        supabase.from('pedidos_oracao').select('id', { count: 'exact', head: true }),
-        supabase.from('doacoes_registros').select('id', { count: 'exact', head: true }).eq('status', 'pendente'),
-        supabase.from('comprovantes').select('id', { count: 'exact', head: true })
-    ]);
+function aplicarBadgeMenu(idElemento, total) {
+    const el = document.getElementById(idElemento);
+    if (!el) return;
+    if (total && total > 0) {
+        el.innerText = total;
+        el.classList.remove('hidden');
+    } else {
+        el.classList.add('hidden');
+    }
+}
 
-    const configurarBadge = (idElemento, total) => {
-        const el = document.getElementById(idElemento);
-        if (!el) return;
-        if (total && total > 0) {
-            el.innerText = total;
-            el.classList.remove('hidden');
-        } else {
-            el.classList.add('hidden');
-        }
-    };
+async function consultarEAtualizarBadgeTabela(tabela) {
+    if (tabela === 'pedidos_oracao') {
+        const { count, error } = await supabase
+            .from('pedidos_oracao')
+            .select('id', { count: 'exact', head: true });
+        if (!error) aplicarBadgeMenu('badge-oracao-admin', count);
+    } else if (tabela === 'doacoes_registros') {
+        const { count, error } = await supabase
+            .from('doacoes_registros')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'pendente');
+        if (!error) aplicarBadgeMenu('badge-doacoes-admin', count);
+    } else if (tabela === 'comprovantes') {
+        const { count, error } = await supabase
+            .from('comprovantes')
+            .select('id', { count: 'exact', head: true });
+        if (!error) aplicarBadgeMenu('badge-comprovantes-menu', count);
+    }
+}
 
-    configurarBadge('badge-oracao-admin', resOracao.count);
-    configurarBadge('badge-doacoes-admin', resDoacoes.count);
-    configurarBadge('badge-comprovantes-menu', resComps.count);
+function atualizarBadgeMenuAdmin(tabela, esperaMs = 200) {
+    if (timersBadgesRealtime[tabela]) {
+        clearTimeout(timersBadgesRealtime[tabela]);
+    }
+    timersBadgesRealtime[tabela] = setTimeout(() => {
+        delete timersBadgesRealtime[tabela];
+        consultarEAtualizarBadgeTabela(tabela);
+    }, esperaMs);
+}
+
+function inicializarBadgesMenuAdmin() {
+    ['pedidos_oracao', 'doacoes_registros', 'comprovantes'].forEach((tabela) => {
+        consultarEAtualizarBadgeTabela(tabela);
+    });
 }
 
 supabase.channel('admin-giras-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'presencas_gira' }, (payload) => {
-        const pres = payload.new;
-        if (pres) {
-            if (pres.status === 'ausente') {
-                mostrarToast(`⚠️ Ausência Justificada`, `${pres.filho_nome}: "${pres.justificativa || 'Sem motivo'}"`);
+        const pres = payload.new || payload.old;
+        if (payload.new) {
+            if (payload.new.status === 'ausente') {
+                mostrarToast(`⚠️ Ausência Justificada`, `${payload.new.filho_nome}: "${payload.new.justificativa || 'Sem motivo'}"`);
             } else {
-                mostrarToast(`✅ Presença Confirmada`, `${pres.filho_nome} confirmou presença na gira.`);
+                mostrarToast(`✅ Presença Confirmada`, `${payload.new.filho_nome} confirmou presença na gira.`);
             }
         }
-        carregarGirasAdmin();
+        agendarAtualizacaoPresencas(pres?.gira_id || null);
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_oracao' }, () => atualizarBadgesMenuAdmin())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'doacoes_registros' }, () => atualizarBadgesMenuAdmin())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'comprovantes' }, () => atualizarBadgesMenuAdmin())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos_oracao' }, () => atualizarBadgeMenuAdmin('pedidos_oracao'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'doacoes_registros' }, () => atualizarBadgeMenuAdmin('doacoes_registros'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comprovantes' }, () => atualizarBadgeMenuAdmin('comprovantes'))
     .subscribe();
 
 // Expor funções para os eventos do HTML
@@ -390,5 +451,5 @@ Object.assign(window, {
 if (adminAtivo) {
     carregarGirasAdmin();
     carregarAvisosAdmin();
-    atualizarBadgesMenuAdmin();
+    inicializarBadgesMenuAdmin();
 }

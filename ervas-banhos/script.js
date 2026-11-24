@@ -2,16 +2,19 @@ import {
     supabase, state, dataHoje, exigirSessao, realizarLogoutGlobal, mostrarToast 
 } from '../shared/config.js';
 
-// Verifica se o utilizador está autenticado (permite Filho e Admin)
 const usuarioAtivo = exigirSessao(false);
 let modoVisaoAtual = (usuarioAtivo && usuarioAtivo.is_admin) ? 'admin' : 'filho';
 
 let ervasCacheLocal = [];
 let objetivoErvaSelecionado = 'TODOS';
 
-// =========================================================================
-// 1. CONFIGURAÇÃO VISUAL POR CARGO (FILHO VS ADMIN)
-// =========================================================================
+function limparTextoCampo(valor) {
+    if (valor === null || valor === undefined) return '';
+    const txt = String(valor).trim();
+    if (!txt || txt.toLowerCase() === 'null' || txt.toLowerCase() === 'undefined') return '';
+    return txt;
+}
+
 function inicializarInterfacePorCargo() {
     if (!state.usuarioLogado) return;
     const isAdmin = state.usuarioLogado.is_admin === true;
@@ -57,14 +60,17 @@ export function alternarModoVisaoErvas() {
     renderizarTudoErvas();
 }
 
-// =========================================================================
-// 2. CARREGAR ACERVO DE ERVAS E BANHOS DO SUPABASE
-// =========================================================================
 export async function carregarErvasBanhos() {
     const { data, error } = await supabase
         .from('ervas_banhos')
         .select('*')
         .order('orixa', { ascending: true });
+
+    if (error) {
+        console.error('Erro ao carregar ervas_banhos:', error);
+        mostrarToast('Erro ao Carregar', error.message || 'Falha ao consultar ervas.');
+        return;
+    }
 
     ervasCacheLocal = data || [];
     renderizarTudoErvas();
@@ -77,9 +83,6 @@ function renderizarTudoErvas() {
     }
 }
 
-// =========================================================================
-// 3. FILTROS INTERATIVOS E RENDERIZAÇÃO NA VISÃO DO FILHO
-// =========================================================================
 export function selecionarObjetivoErva(objetivo) {
     objetivoErvaSelecionado = objetivo;
 
@@ -108,9 +111,10 @@ export function filtrarErvasFilho() {
     const orixaFiltro = document.getElementById('filtro-ervas-orixa')?.value || 'TODOS';
 
     const filtradas = ervasCacheLocal.filter(item => {
+        const preparoTexto = limparTextoCampo(item.ervas_preparo) || limparTextoCampo(item.preparo);
         const bateOrixa = orixaFiltro === 'TODOS' || (item.orixa && item.orixa.toLowerCase() === orixaFiltro.toLowerCase());
         const bateObjetivo = objetivoErvaSelecionado === 'TODOS' || (item.objetivo && item.objetivo.toLowerCase() === objetivoErvaSelecionado.toLowerCase());
-        const textoCompleto = `${item.nome || ''} ${item.orixa || ''} ${item.preparo || ''} ${item.objetivo || ''}`.toLowerCase();
+        const textoCompleto = `${item.nome || ''} ${item.orixa || ''} ${preparoTexto} ${item.objetivo || ''}`.toLowerCase();
         const bateBusca = !termoBusca || textoCompleto.includes(termoBusca);
 
         return bateOrixa && bateObjetivo && bateBusca;
@@ -158,13 +162,14 @@ function obterEstiloClassificacao(classificacao) {
 function criarCardErvaHtml(erva, isAdminCard = false) {
     const est = obterEstiloClassificacao(erva.classificacao);
     const isPescocoAbaixo = (erva.modo_uso || '').toLowerCase().includes('pescoço');
+    const preparoTexto = limparTextoCampo(erva.ervas_preparo) || limparTextoCampo(erva.preparo) || 'Modo de preparo não informado.';
+    const evitarTexto = limparTextoCampo(erva.cuidados_evitar) || limparTextoCampo(erva.evitar);
 
     return `
         <article class="card-erva-editorial space-y-4">
             <div class="barra-topo-card ${est.barra}"></div>
 
             <div class="space-y-3">
-                <!-- Linha de Etiquetas Superiores -->
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
                     <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-[#F5F0E8] text-[#8E2638] border border-[#8E2638]/20 px-3 py-1 rounded-full">
                         <i class="fa-solid fa-crown text-[9px]"></i> ${erva.orixa || 'Uso Geral'}
@@ -182,7 +187,6 @@ function criarCardErvaHtml(erva, isAdminCard = false) {
                     </div>
                 </div>
 
-                <!-- Título e Objetivo -->
                 <div>
                     <h4 class="text-lg font-extrabold text-slate-900 leading-snug">${erva.nome}</h4>
                     <p class="text-[11px] font-bold text-[#2b677a] uppercase tracking-wider mt-0.5">
@@ -190,16 +194,14 @@ function criarCardErvaHtml(erva, isAdminCard = false) {
                     </p>
                 </div>
 
-                <!-- Preparo e Ervas -->
                 <div class="bg-[#F5F0E8]/70 p-3.5 rounded-2xl border border-[#8E2638]/12 text-xs text-slate-700 leading-relaxed">
                     <strong class="text-[10px] font-extrabold uppercase tracking-wider text-[#8E2638] block mb-1">
                         <i class="fa-solid fa-mortar-pestle mr-1"></i>Ervas &amp; Modo de Preparo:
                     </strong>
-                    ${erva.preparo}
+                    ${preparoTexto}
                 </div>
             </div>
 
-            <!-- Rodapé do Card: Regra da Coroa e Contraindicações -->
             <div class="space-y-2 pt-2 border-t border-slate-100">
                 <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-slate-500">Regra de Uso:</span>
@@ -209,10 +211,10 @@ function criarCardErvaHtml(erva, isAdminCard = false) {
                     </span>
                 </div>
 
-                ${erva.evitar ? `
+                ${evitarTexto ? `
                     <div class="bg-[#8E2638]/5 border border-[#8E2638]/20 rounded-xl p-2.5 text-[11px] text-[#8E2638] font-semibold flex items-start gap-2">
                         <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i>
-                        <span><strong>Atenção:</strong> ${erva.evitar}</span>
+                        <span><strong>Atenção:</strong> ${evitarTexto}</span>
                     </div>
                 ` : ''}
             </div>
@@ -220,9 +222,6 @@ function criarCardErvaHtml(erva, isAdminCard = false) {
     `;
 }
 
-// =========================================================================
-// 4. GESTÃO DO ADMIN: SALVAR, APAGAR E POPULAR GUIA BASE DE ERVAS
-// =========================================================================
 function renderizarListaErvasAdmin(lista) {
     const containerAdmin = document.getElementById('lista-ervas-admin');
     if (!containerAdmin) return;
@@ -245,14 +244,23 @@ export async function salvarErvaBanho(event) {
     const btn = document.getElementById('btn-salvar-erva');
     if (btn) btn.disabled = true;
 
+    const preparoVal = limparTextoCampo(document.getElementById('erva-preparo').value);
+    const evitarVal = limparTextoCampo(document.getElementById('erva-evitar').value) || null;
+
+    if (!preparoVal) {
+        if (btn) btn.disabled = false;
+        mostrarToast("Campo Obrigatório", "Preencha as ervas e o modo de preparo antes de salvar.");
+        return;
+    }
+
     const novoRegisto = {
         nome: document.getElementById('erva-nome').value.trim(),
         orixa: document.getElementById('erva-orixa').value.trim(),
         objetivo: document.getElementById('erva-objetivo').value,
         classificacao: document.getElementById('erva-classificacao').value,
         modo_uso: document.getElementById('erva-modo-uso').value,
-        preparo: document.getElementById('erva-preparo').value.trim(),
-        evitar: document.getElementById('erva-evitar').value.trim() || null
+        ervas_preparo: preparoVal,
+        cuidados_evitar: evitarVal
     };
 
     const { error } = await supabase.from('ervas_banhos').insert([novoRegisto]);
@@ -263,7 +271,8 @@ export async function salvarErvaBanho(event) {
         document.getElementById('form-ervas').querySelector('form').reset();
         carregarErvasBanhos();
     } else {
-        alert("Erro ao salvar banho no Guia de Ervas.");
+        console.error('Erro ao salvar banho:', error);
+        mostrarToast("Erro ao Salvar Banho", error.message || "Verifique as colunas e permissões da tabela ervas_banhos.");
     }
 }
 
@@ -273,6 +282,9 @@ export async function apagarErvaBanho(id) {
         if (!error) {
             mostrarToast("Registo Removido", "O banho foi retirado do guia.");
             carregarErvasBanhos();
+        } else {
+            console.error('Erro ao apagar banho:', error);
+            mostrarToast("Erro ao Remover", error.message || "Não foi possível remover o banho.");
         }
     }
 }
@@ -287,8 +299,8 @@ export async function popularErvasPadrao() {
             objetivo: "Abertura de Caminhos",
             classificacao: "Morna",
             modo_uso: "Do pescoço para baixo",
-            preparo: "Macerar folhas frescas de Bambu, Espada de Santa Bárbara e pétalas de Rosa Vermelha ou Coral em água morna. Coar após o banho de higiene.",
-            evitar: "Não jogar na coroa sem autorização direta da mãe/pai de santo. Filhos de Oxum devem substituir a Espada por Folha de Pitanga."
+            ervas_preparo: "Macerar folhas frescas de Bambu, Espada de Santa Bárbara e pétalas de Rosa Vermelha ou Coral em água morna. Coar após o banho de higiene.",
+            cuidados_evitar: "Não jogar na coroa sem autorização direta da mãe/pai de santo. Filhos de Oxum devem substituir a Espada por Folha de Pitanga."
         },
         {
             nome: "Banho de Paz e Alinhamento de Oxalá",
@@ -296,8 +308,8 @@ export async function popularErvasPadrao() {
             objetivo: "Calmante / Paz",
             classificacao: "Fria",
             modo_uso: "Coroa liberada (Cabeça aos pés)",
-            preparo: "Quinchar folhas frescas de Boldo (Tapete de Oxalá), Manjericão Branco e pétalas de Rosa Branca em água mineral fria ou levemente morna.",
-            evitar: "Evitar fazer este banho em dias de gira de Exu sem orientação prévia."
+            ervas_preparo: "Quinchar folhas frescas de Boldo (Tapete de Oxalá), Manjericão Branco e pétalas de Rosa Branca em água mineral fria ou levemente morna.",
+            cuidados_evitar: "Evitar fazer este banho em dias de gira de Exu sem orientação prévia."
         },
         {
             nome: "Banho de Harmonia e Serenidade das Águas",
@@ -305,8 +317,8 @@ export async function popularErvasPadrao() {
             objetivo: "Equilíbrio",
             classificacao: "Morna",
             modo_uso: "Coroa liberada (Cabeça aos pés)",
-            preparo: "Infusão leve ou maceração de Alfazema, Colônia, Manjericão e Rosas Brancas. Excelente para acalmar o emocional e limpar a aura.",
-            evitar: "Nenhuma contraindicação geral; respeitar apenas eventuais alergias de pele."
+            ervas_preparo: "Infusão leve ou maceração de Alfazema, Colônia, Manjericão e Rosas Brancas. Excelente para acalmar o emocional e limpar a aura.",
+            cuidados_evitar: "Nenhuma contraindicação geral; respeitar apenas eventuais alergias de pele."
         },
         {
             nome: "Descarrego Forte de Quebra-Demanda",
@@ -314,8 +326,8 @@ export async function popularErvasPadrao() {
             objetivo: "Descarrego",
             classificacao: "Quente",
             modo_uso: "Do pescoço para baixo",
-            preparo: "Ferver água, desligar o lume e abafar folhas de Arruda, Guiné, Aroeira e Casca de Alho. Coar e jogar estritamente do pescoço para baixo.",
-            evitar: "PROIBIDO jogar na cabeça (coroa). Após um banho quente de Aroeira, tome no dia seguinte um banho morno de Manjericão ou Alecrim para repor a energia."
+            ervas_preparo: "Ferver água, desligar o lume e abafar folhas de Arruda, Guiné, Aroeira e Casca de Alho. Coar e jogar estritamente do pescoço para baixo.",
+            cuidados_evitar: "PROIBIDO jogar na cabeça (coroa). Após um banho quente de Aroeira, tome no dia seguinte um banho morno de Manjericão ou Alecrim para repor a energia."
         },
         {
             nome: "Banho de Limpeza e Sabedoria dos Pretos Velhos",
@@ -323,8 +335,8 @@ export async function popularErvasPadrao() {
             objetivo: "Descarrego",
             classificacao: "Morna",
             modo_uso: "Do pescoço para baixo",
-            preparo: "Infusão de Alecrim, Arruda, Guiné e Alfazema. Limpa larvas astrais mantendo o equilíbrio magnético do médium antes da gira.",
-            evitar: "Sempre do pescoço para baixo por conter Arruda e Guiné."
+            ervas_preparo: "Infusão de Alecrim, Arruda, Guiné e Alfazema. Limpa larvas astrais mantendo o equilíbrio magnético do médium antes da gira.",
+            cuidados_evitar: "Sempre do pescoço para baixo por conter Arruda e Guiné."
         },
         {
             nome: "Banho de Prosperidade e Doçura de Oxum",
@@ -332,8 +344,8 @@ export async function popularErvasPadrao() {
             objetivo: "Abertura de Caminhos",
             classificacao: "Morna",
             modo_uso: "Do pescoço para baixo",
-            preparo: "Infusão de Camomila, Erva-Doce, Calêndula e pétalas de Rosa Amarela.",
-            evitar: "Não utilizar ervas agressivas na mesma preparação."
+            ervas_preparo: "Infusão de Camomila, Erva-Doce, Calêndula e pétalas de Rosa Amarela.",
+            cuidados_evitar: "Não utilizar ervas agressivas na mesma preparação."
         },
         {
             nome: "Banho de Firmeza e Corte de Ogum",
@@ -341,8 +353,8 @@ export async function popularErvasPadrao() {
             objetivo: "Equilíbrio",
             classificacao: "Morna",
             modo_uso: "Do pescoço para baixo",
-            preparo: "Macerar folhas de Abre-Caminho, Levante e Peregum Verde em água morna.",
-            evitar: "Jogar apenas dos ombros para baixo."
+            ervas_preparo: "Macerar folhas de Abre-Caminho, Levante e Peregum Verde em água morna.",
+            cuidados_evitar: "Jogar apenas dos ombros para baixo."
         }
     ];
 
@@ -351,13 +363,11 @@ export async function popularErvasPadrao() {
         mostrarToast("Guia Base Inserido!", "Os banhos tradicionais foram adicionados com sucesso.");
         carregarErvasBanhos();
     } else {
-        alert("Erro ao inserir o Guia Base de Ervas.");
+        console.error('Erro ao inserir guia base:', error);
+        mostrarToast("Erro ao Inserir Guia Base", error.message || "Falha ao inserir banhos padrão.");
     }
 }
 
-// =========================================================================
-// 5. BADGES COMPLEMENTARES E ATUALIZAÇÃO EM TEMPO REAL
-// =========================================================================
 async function atualizarBadgesComplementares() {
     if (!state.usuarioLogado) return;
 
@@ -397,7 +407,6 @@ supabase.channel('ervas-banhos-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'ervas_banhos' }, () => carregarErvasBanhos())
     .subscribe();
 
-// Expor funções para os eventos do HTML
 Object.assign(window, {
     realizarLogout: realizarLogoutGlobal,
     alternarModoVisaoErvas,
